@@ -7,6 +7,7 @@ export default function Layout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
             <Stack.Screen name="add-task" />
+            <Stack.Screen name="view-tasks" />
         </Stack>
     );
 }
