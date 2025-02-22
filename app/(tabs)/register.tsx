@@ -5,12 +5,12 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
-    Platform,
     StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { auth } from "../../firebase.config";
+import { auth, db } from "../../firebase.config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
@@ -32,8 +32,20 @@ export default function RegisterScreen() {
         }
 
         try {
-            // Firebase authentication
-            await createUserWithEmailAndPassword(auth, email, password);
+            // Firebase authentication - create user
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+            const user = userCredential.user;
+
+            // Store user data in Firestore using UID as the document ID
+            await setDoc(doc(db, "users", user.uid), {
+                email: user.email,
+                points: 0, // New users start with 0 points
+            });
+
             Alert.alert("Success", "Account created!");
             router.push("/login");
         } catch (error: any) {
@@ -56,7 +68,7 @@ export default function RegisterScreen() {
                 style={styles.input}
             />
             <TextInput
-                placeholder="Password"
+                placeholder="Password (6 or more characters)"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
