@@ -5,12 +5,12 @@ import {
     TextInput,
     TouchableOpacity,
     Alert,
-    Platform,
     StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { auth } from "../../firebase.config";
+import { auth, db } from "../../firebase.config";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
@@ -26,10 +26,22 @@ export default function LoginScreen() {
         }
 
         try {
-            // Firebase authentication
-            await signInWithEmailAndPassword(auth, email, password);
-            Alert.alert("Success", "Logged in!");
-            router.push("/");
+            const userCredential = await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+            const user = userCredential.user;
+
+            // Fetch user data from Firestore
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+
+            if (userDoc.exists()) {
+                console.log("User data:", userDoc.data());
+                router.push("/"); 
+            } else {
+                Alert.alert("Error", "User data not found.");
+            }
         } catch (error: any) {
             Alert.alert("Error", error.message);
         }
@@ -60,15 +72,6 @@ export default function LoginScreen() {
             <TouchableOpacity onPress={handleLogin} style={styles.button}>
                 <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-                onPress={() => router.push("/register")}
-                style={styles.registerLink}
-            >
-                <Text style={styles.linkText}>
-                    Don't have an account? Register
-                </Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -81,22 +84,15 @@ const styles = StyleSheet.create({
         backgroundColor: "#F9F9F9",
         paddingHorizontal: 16,
     },
-    titleContainer: {
-        backgroundColor: "#F9F9F9",
-        marginBottom: 20,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: "bold",
-        color: "#0066CC",
-    },
+    titleContainer: { marginBottom: 20 },
+    title: { fontSize: 32, fontWeight: "bold", color: "#0066CC" },
     input: {
         width: "100%",
         padding: 16,
         backgroundColor: "#FFFFFF",
         borderRadius: 8,
         marginBottom: 12,
-        shadowColor: "#000000",
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.5,
@@ -110,17 +106,5 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         alignItems: "center",
     },
-    buttonText: {
-        color: "#FFFFFF",
-        fontWeight: "bold",
-        fontSize: 16,
-    },
-    registerLink: {
-        marginTop: 16,
-    },
-    linkText: {
-        color: "#0066CC",
-        fontSize: 16,
-        textDecorationLine: "underline",
-    },
+    buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
 });
