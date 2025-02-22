@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection: Only allow users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Tasks collection: Allow anyone to read, but only authenticated users to write
+    match /tasks/{taskId} {
+      allow read: if true;  // Public read access
+      allow write: if request.auth != null;  // Only authenticated users can add tasks
+    }
+
+    // Friends list (subcollection of users): Allow users to read/write their own friends list
+    match /users/{userId}/friends/{friendId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;  // Only authenticated users can access their own friends data
+    }
+  }
+}
