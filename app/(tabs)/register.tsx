@@ -46,7 +46,7 @@ export default function RegisterScreen() {
                 uid: user.uid,
                 email: user.email,
                 userName: userName,
-                friends: [],
+                friends: [user.uid],
                 points: 0, // New users start with 0 points
             });
 

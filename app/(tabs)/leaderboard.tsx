@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-nativ
 import { auth, db } from "../../firebase.config";
 import { useRouter } from "expo-router";
 import { getDoc, doc, getDocs, collection, query, where } from "firebase/firestore";
+import BottomBar from "@/components/BottomBar";
 
 export default function Leaderboard() {
     const [userData, setUserData] = useState<{
@@ -53,7 +54,7 @@ export default function Leaderboard() {
             if (userDocSnap.exists()) {
                 const friendsList = userDocSnap.data().friends || [];
                 console.log(friendsList);
-                if (friendsList.length === 0) {
+                if (friendsList.length === 1) {
                     setFriends([]);
                     setMessageCode(1);
                 } else {
@@ -80,7 +81,7 @@ export default function Leaderboard() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text>
+            <Text style={styles.userData}>{userData?.email || ""}</Text>
             {
                 messageCode === 0 ? (
                     <div>
@@ -100,6 +101,7 @@ export default function Leaderboard() {
                     <Text>Error loading friends.</Text>
                 )
             }
+            <BottomBar />
         </View>
     );
 }
@@ -107,7 +109,7 @@ export default function Leaderboard() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        // padding: 20,
         backgroundColor: "#f8f8f8",
     },
     title: {

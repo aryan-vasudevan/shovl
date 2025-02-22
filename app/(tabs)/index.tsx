@@ -11,6 +11,7 @@ import { auth, db } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import BottomBar from "@/components/BottomBar";
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -60,7 +61,7 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text>
+            <Text style={styles.userData}>{userData?.email || ""}</Text>
             {userData ? (
                 <>
                     <ThemedView style={styles.titleContainer}>
@@ -103,6 +104,7 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                 </>
             )}
+            <BottomBar />
         </View>
     );
 }
@@ -112,7 +114,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#F9F9F9",
+        backgroundColor: "#102141",
         paddingHorizontal: 16,
     },
     titleContainer: { 

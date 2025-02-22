@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { db } from "../../firebase.config";
 import { collection, getDocs } from "firebase/firestore";
+import BottomBar from "@/components/BottomBar";
 
 // Haversine formula to calculate distance in km
 const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -181,6 +182,7 @@ export default function ViewTasksScreen() {
                     />
                 </>
             )}
+            <BottomBar />
         </View>
     );
 }
@@ -188,8 +190,9 @@ export default function ViewTasksScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        // padding: 20,
         backgroundColor: "#F9F9F9",
+        paddingBottom: 60,
     },
     toggleContainer: {
         flexDirection: "row",
