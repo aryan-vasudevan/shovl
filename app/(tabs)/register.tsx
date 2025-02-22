@@ -17,11 +17,12 @@ import { ThemedView } from "@/components/ThemedView";
 export default function RegisterScreen() {
     const router = useRouter();
     const [email, setEmail] = useState("");
+    const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
     const handleRegister = async () => {
-        if (!email || !password || !confirmPassword) {
+        if (!email || !userName || !password || !confirmPassword) {
             Alert.alert("Error", "Please fill in all fields.");
             return;
         }
@@ -43,6 +44,8 @@ export default function RegisterScreen() {
             // Store user data in Firestore using UID as the document ID
             await setDoc(doc(db, "users", user.uid), {
                 email: user.email,
+                userName: userName,
+                friends: [],
                 points: 0, // New users start with 0 points
             });
 
@@ -65,6 +68,13 @@ export default function RegisterScreen() {
                 placeholder="Email"
                 value={email}
                 onChangeText={setEmail}
+                style={styles.input}
+            />
+
+            <TextInput 
+                placeholder="Username"
+                value={userName}
+                onChangeText={setUserName}
                 style={styles.input}
             />
             <TextInput
