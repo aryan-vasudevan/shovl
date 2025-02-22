@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase.config";
@@ -16,7 +18,29 @@ import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
 import flagData from "../../assets/fonts/flag.json";
-export default function HomeScreen() {
+import { motion } from "motion/react";
+import { useRef } from "react";
+
+
+export default 
+function HomeScreen() {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1.1, // Scale up
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1, // Scale back to original size
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
   const router = useRouter();
   const [fontsLoaded] = useFonts({
     norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
@@ -64,7 +88,13 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Lottie
         animationData={snowData}
-        style={{ zIndex: -2, position: "absolute" }}
+        style={{
+          zIndex: -2,
+          position: "absolute",
+          top: 0,
+          width: 1000,
+          height: 1000,
+        }}
       />
 
       {/* <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text> */}
@@ -88,34 +118,38 @@ export default function HomeScreen() {
       ) : (
         <>
           <ThemedView style={styles.titleContainer}>
-            <Lottie
+            {/* <Lottie
               animationData={flagData}
               style={{
                 width: 100,
                 height: 50,
                 position: "absolute",
-                left: 174,
-                top: 38,
+                left: 228,
+                top: 35,
                 transform: "rotate(16deg)", // Wrap in quotes
               }}
-            />
+            /> */}
             <Image
-              style={{ width: 240, height: 210 }}
-              source={require("../../assets/fonts/titleshovl.png")}
+              style={{ width: 320, height: 250 }}
+              source={require("../../assets/fonts/shovltitle.png")}
               resizeMode="cover"
             />
           </ThemedView>
-          <Text style={styles.infoText}>
-            gamifying canada's least-favorite chore
-          </Text>
-          {/* <Text style={styles.infoText}>Sign up to start earning rewards.</Text> */}
+          <Text style={styles.infoText}>gamifying canada's</Text>
+          <Text style={styles.infoText}>least-favorite chore</Text>
 
-          <TouchableOpacity
+          {/* <Text style={styles.infoText}>Sign up to start earning rewards.</Text> */}
+          <TouchableWithoutFeedback
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
             onPress={() => router.push("/login")}
-            style={styles.button}
           >
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
+            <Animated.View
+              style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
+            >
+              <Image source={require("../../assets/fonts/login.png")} style= {{width: 120, height: 80}} />
+            </Animated.View>
+          </TouchableWithoutFeedback>
         </>
       )}
     </View>
@@ -124,15 +158,17 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    overflow: "hidden",
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#102444",
+    backgroundColor: "#0F2141",
     paddingHorizontal: 16,
   },
   titleContainer: {
     backgroundColor: "transparent",
     marginBottom: 20,
+    top: 100,
   },
   title: {
     fontSize: 32,
@@ -147,20 +183,38 @@ const styles = StyleSheet.create({
     top: 0,
   },
   infoText: {
-    fontSize: 18,
-    marginBottom: 10,
+    fontSize: 21.5,
+    marginBottom: 0,
     textAlign: "center",
     color: "#FFFFFF",
     fontFamily: "norwester",
+    top: -15,
   },
   button: {
     width: "80%",
     padding: 16,
-    backgroundColor: "#0066CC",
     borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    backgroundColor: "transparent",
     marginTop: 20,
     alignItems: "center",
   },
-  buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
+  button2: {
+    width: "80%",
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "transparent",
+    backgroundColor: "transparent",
+    marginTop: 20,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 24,
+    fontFamily: "norwester",
+  },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
