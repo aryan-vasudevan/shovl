@@ -6,6 +6,7 @@ export default function Layout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
+            <Stack.Screen name="addTask" />
         </Stack>
     );
 }

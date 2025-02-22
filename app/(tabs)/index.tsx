@@ -70,6 +70,14 @@ export default function HomeScreen() {
                     <Text style={styles.infoText}>
                         Points: {userData.points}
                     </Text>
+
+                    {/* Add Task Button */}
+                    <TouchableOpacity
+                        onPress={() => router.push("/addTask")}
+                        style={styles.button}
+                    >
+                        <Text style={styles.buttonText}>Add Task</Text>
+                    </TouchableOpacity>
                 </>
             ) : (
                 <>
