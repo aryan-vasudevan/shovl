@@ -60,6 +60,7 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text>
             {userData ? (
                 <>
                     <ThemedView style={styles.titleContainer}>
@@ -123,6 +124,11 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#0066CC",
         textAlign: "center",
+    },
+    userData: {
+        position: "absolute",
+        right: 0,
+        top: 0,
     },
     infoText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
     button: {

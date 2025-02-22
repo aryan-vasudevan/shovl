@@ -43,6 +43,7 @@ export default function RegisterScreen() {
 
             // Store user data in Firestore using UID as the document ID
             await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
                 email: user.email,
                 userName: userName,
                 friends: [],
