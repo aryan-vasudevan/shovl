@@ -81,7 +81,7 @@ export default function Leaderboard() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.userData}>{userData?.email || ""}</Text>
+            {/* <Text style={styles.userData}>{userData?.email || ""}</Text> */}
             {
                 messageCode === 0 ? (
                     <div>
