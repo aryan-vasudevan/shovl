@@ -1,139 +1,146 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert, StyleSheet, TextInput } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import * as Location from "expo-location";
-import * as ImagePicker from "expo-image-picker";
-import { db, auth } from "../../firebase.config";
-import { doc, setDoc } from "firebase/firestore";
 import {
-    getStorage,
-    ref,
-    uploadBytesResumable,
-    getDownloadURL,
-} from "firebase/storage";
+    View,
+    Text,
+    TouchableOpacity,
+    Image,
+    StyleSheet,
+    Alert,
+    ActivityIndicator,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import { useRouter } from "expo-router";
+import { db } from "../../firebase.config";
+import { collection, addDoc } from "firebase/firestore";
+import uuid from "react-native-uuid";
 
 export default function AddTaskScreen() {
-    const navigation = useNavigation();
-    const [imageUri, setImageUri] = useState<string | null>(null);
-    const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
-    const [time, setTime] = useState("");
-    const [hasPermission, setHasPermission] = useState(false);
+    const router = useRouter();
+    const [photo, setPhoto] = useState<string | null>(null);
+    const [location, setLocation] =
+        useState<Location.LocationObjectCoords | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         (async () => {
             const { status } =
                 await Location.requestForegroundPermissionsAsync();
-            setHasPermission(status === "granted");
+            if (status !== "granted") {
+                Alert.alert(
+                    "Permission Denied",
+                    "Location permission is required to create a task."
+                );
+                return;
+            }
+            try {
+                const loc = await Location.getCurrentPositionAsync({});
+                setLocation(loc.coords);
+            } catch (error) {
+                console.error("Location error:", error);
+            }
         })();
     }, []);
 
-    const getLocation = async () => {
-        if (hasPermission) {
-            const locationData = await Location.getCurrentPositionAsync({});
-            setLocation(locationData.coords);
-        } else {
-            Alert.alert(
-                "Permission not granted",
-                "Please enable location permissions"
-            );
-        }
-    };
-
     const pickImage = async () => {
-        let result = await ImagePicker.launchCameraAsync({
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: "images",
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
         });
 
         if (!result.canceled) {
-            setImageUri(result.assets[0].uri);
+            setPhoto(result.assets[0].uri);
         }
     };
 
-    const uploadImage = async (imageUri: string) => {
-        const storage = getStorage();
-        const fileName = `task_images/${Date.now()}.jpg`;
-        const storageRef = ref(storage, fileName);
-        const response = await fetch(imageUri);
+    const uploadImageToCloudinary = async (uri: string) => {
+        const response = await fetch(uri);
         const blob = await response.blob();
 
-        const uploadTask = uploadBytesResumable(storageRef, blob);
+        const formData = new FormData();
+        formData.append("file", blob);
+        formData.append("upload_preset", "ml_default"); 
+        formData.append("api_key", "556837874624961"); 
 
-        return new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-                "state_changed",
-                (snapshot) => {
-                    // Handle progress (optional)
-                },
-                (error) => {
-                    reject(error);
-                },
-                async () => {
-                    const downloadUrl = await getDownloadURL(
-                        uploadTask.snapshot.ref
-                    );
-                    resolve(downloadUrl);
+        try {
+            const cloudinaryResponse = await fetch(
+                "https://api.cloudinary.com/v1_1/dkvqiejgn/image/upload",
+                {
+                    method: "POST",
+                    body: formData,
                 }
             );
-        });
-    };
 
-    const handleCreateTask = async () => {
-        if (!time || !location || !imageUri) {
-            Alert.alert("Error", "Please fill in all fields.");
+            const data = await cloudinaryResponse.json();
+            if (!data.secure_url) {
+                throw new Error(
+                    "Cloudinary upload failed: " + JSON.stringify(data)
+                );
+            }
+
+            return data.secure_url; // Return the image URL from Cloudinary
+        } catch (error) {
+            console.error("Cloudinary upload error:", error);
+            throw new Error(
+                "Error uploading image to Cloudinary: " + (error as Error).message
+            );
+        }
+    };
+ 
+
+    const handleSubmit = async () => {
+        if (!photo || !location) {
+            Alert.alert(
+                "Error",
+                "Please select an image and allow location access."
+            );
             return;
         }
 
-        const user = auth.currentUser;
-        if (user) {
-            try {
-                // Upload image to Firebase Storage
-                const imageUrl = await uploadImage(imageUri);
+        setLoading(true);
 
-                const taskId = `task_${Date.now()}`;
-                const taskData = {
-                    time,
-                    location,
-                    imageUri: imageUrl,
-                    createdBy: user.email,
-                    createdAt: new Date(),
-                };
+        try {
+            const imageUrl = await uploadImageToCloudinary(photo); // Upload image to Cloudinary
+            console.log(imageUrl);
+            const taskData = {
+                photo: imageUrl, // Store the image URL
+                latitude: location.latitude,
+                longitude: location.longitude,
+                timestamp: new Date().toISOString(),
+            };
 
-                // Save the task to Firestore
-                await setDoc(doc(db, "tasks", taskId), taskData);
-                Alert.alert("Success", "Task created!");
-                navigation.goBack();
-            } catch (error) {
-                Alert.alert("Error", "Failed to create task");
-            }
-        } else {
-            Alert.alert("Error", "User not logged in");
+            await addDoc(collection(db, "tasks"), taskData);
+
+            Alert.alert("Success", "Task created successfully!");
+            router.push("/");
+        } catch (error) {
+            Alert.alert("Error", "Failed to submit task.");
+            console.error("Error submitting task:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Create a Task</Text>
+            {loading && <ActivityIndicator size="large" color="#0066CC" />}
 
-            <TextInput
-                placeholder="Task Time (e.g. 10:00 AM)"
-                value={time}
-                onChangeText={setTime}
-                style={styles.input}
-            />
-
-            <TouchableOpacity onPress={getLocation} style={styles.button}>
-                <Text style={styles.buttonText}>Get Location</Text>
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
+                <Text style={styles.buttonText}>Pick an Image</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={pickImage} style={styles.button}>
-                <Text style={styles.buttonText}>Pick a Photo</Text>
-            </TouchableOpacity>
+            {photo && <Image source={{ uri: photo }} style={styles.preview} />}
 
-            <TouchableOpacity onPress={handleCreateTask} style={styles.button}>
-                <Text style={styles.buttonText}>Publish Task</Text>
-            </TouchableOpacity>
+            {photo && (
+                <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={handleSubmit}
+                >
+                    <Text style={styles.buttonText}>Submit Task</Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
 }
@@ -141,32 +148,21 @@ export default function AddTaskScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: "center",
         justifyContent: "center",
-        padding: 16,
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 20,
-    },
-    input: {
-        width: "100%",
-        padding: 16,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 8,
-        marginBottom: 12,
+        alignItems: "center",
+        backgroundColor: "#F9F9F9",
     },
     button: {
-        width: "100%",
-        padding: 16,
         backgroundColor: "#0066CC",
+        padding: 15,
         borderRadius: 8,
-        marginBottom: 12,
-        alignItems: "center",
+        marginBottom: 20,
     },
-    buttonText: {
-        color: "#FFFFFF",
-        fontSize: 16,
+    buttonText: { color: "white", fontWeight: "bold" },
+    preview: { width: 300, height: 400, marginVertical: 20 },
+    submitButton: {
+        backgroundColor: "#28A745",
+        padding: 15,
+        borderRadius: 8,
     },
 });
