@@ -23,7 +23,6 @@ export default function HomeScreen() {
     useEffect(() => {
         const fetchUserData = async () => {
             const user = auth.currentUser;
-            // No user is logged in
             if (!user) {
                 setLoading(false);
                 return;
@@ -60,7 +59,9 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text>
+            <Text style={styles.userData}>
+                {userData?.email || "fjdlksfjlds"}
+            </Text>
             {userData ? (
                 <>
                     <ThemedView style={styles.titleContainer}>
@@ -72,13 +73,24 @@ export default function HomeScreen() {
                         Points: {userData.points}
                     </Text>
 
-                    {/* Add Task Button */}
-                    <TouchableOpacity
-                        onPress={() => router.push("/add-task")}
-                        style={styles.button}
-                    >
-                        <Text style={styles.buttonText}>Add Task</Text>
-                    </TouchableOpacity>
+                    {/* Buttons Container */}
+                    <View style={styles.buttonContainer}>
+                        {/* Add Task Button */}
+                        <TouchableOpacity
+                            onPress={() => router.push("/add-task")}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>Add Task</Text>
+                        </TouchableOpacity>
+
+                        {/* View Tasks Button */}
+                        <TouchableOpacity
+                            onPress={() => router.push("/view-tasks")}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>View Tasks</Text>
+                        </TouchableOpacity>
+                    </View>
                 </>
             ) : (
                 <>
@@ -115,9 +127,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#F9F9F9",
         paddingHorizontal: 16,
     },
-    titleContainer: { 
+    titleContainer: {
         backgroundColor: "#F9F9F9",
-        marginBottom: 20 
+        marginBottom: 20,
     },
     title: {
         fontSize: 32,
@@ -131,12 +143,16 @@ const styles = StyleSheet.create({
         top: 0,
     },
     infoText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
-    button: {
+    buttonContainer: {
         width: "80%",
+        flexDirection: "column",
+        gap: 10, // Adds spacing between buttons
+    },
+    button: {
+        width: "100%",
         padding: 16,
         backgroundColor: "#0066CC",
         borderRadius: 8,
-        marginTop: 20,
         alignItems: "center",
     },
     buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
