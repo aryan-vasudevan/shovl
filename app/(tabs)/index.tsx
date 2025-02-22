@@ -17,8 +17,6 @@ import Lottie from "lottie-react";
 import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
-import flagData from "../../assets/fonts/flag.json";
-import { motion } from "motion/react";
 import { useRef } from "react";
 
 
