@@ -13,15 +13,14 @@ import { auth, db } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import Lottie from "lottie-react";
+import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
 import { useRef } from "react";
 
-
-export default 
-function HomeScreen() {
+export default function HomeScreen() {
+  const snowRef = useRef<LottieRefCurrentProps>(null);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -49,6 +48,16 @@ function HomeScreen() {
     points: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (snowRef.current) {
+        snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
+      }
+    }, 50); // Delay to ensure the animation is loaded
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -84,6 +93,10 @@ function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <Image
+        style={{ width: 350, height: 350, position: "absolute", top: 0, opacity: 0.5 }}
+        source={require("../../assets/fonts/fog.png")}
+      />
       <Lottie
         animationData={snowData}
         style={{
@@ -93,7 +106,7 @@ function HomeScreen() {
           width: 1000,
           height: 1000,
         }}
-        // speed = 0.5
+        lottieRef={snowRef}
       />
 
       {/* <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text> */}
@@ -146,7 +159,10 @@ function HomeScreen() {
             <Animated.View
               style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
             >
-              <Image source={require("../../assets/fonts/login.png")} style= {{width: 120, height: 50}} />
+              <Image
+                source={require("../../assets/fonts/login.png")}
+                style={{ width: 120, height: 50 }}
+              />
             </Animated.View>
           </TouchableWithoutFeedback>
         </>
