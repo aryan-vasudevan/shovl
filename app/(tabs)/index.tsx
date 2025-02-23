@@ -47,7 +47,7 @@ export default function HomeScreen() {
       useNativeDriver: true,
     }).start();
   };
-    const { userUid } = useLocalSearchParams();
+  const { userUid } = useLocalSearchParams();
 
   useEffect(() => {
     setIsMounted(true);
@@ -112,7 +112,7 @@ export default function HomeScreen() {
           }}
           pointerEvents="none"
         >
-          <Lottie
+          {/* <Lottie
             source={snowData}
             autoPlay
             loop
@@ -120,7 +120,7 @@ export default function HomeScreen() {
               width: "100%",
               height: "100%",
             }}
-          />
+          /> */}
         </View>
       )}
 

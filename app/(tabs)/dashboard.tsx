@@ -92,7 +92,13 @@ export default function HomeScreen() {
                 </ThemedText>
             </ThemedView>
 
-            <ThemedView style={styles.mainContainer}></ThemedView>
+            <ThemedView style={styles.mainContainer}>
+                <ThemedText style={styles.coins2}>your rank:</ThemedText>
+                <Image
+                    source={require("../../assets/fonts/bronze.png")}
+                    style={{ width: 230, height: 350 }}
+                />
+            </ThemedView>
 
             <BottomBar />
         </View>
@@ -135,6 +141,14 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontFamily: "norwester",
     },
+    coins2: {
+        fontSize: 35,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+        textAlign: "center",
+        fontFamily: "norwester",
+        top: 20,
+    },
     coinsYellow: {
         fontSize: 35,
         fontWeight: "bold",
@@ -145,10 +159,16 @@ const styles = StyleSheet.create({
     mainContainer: {
         marginTop: 30,
         backgroundColor: "#0F2141",
-        width: "130%",
-        height: "100%",
+        width: "100%",
+        height: "80%",
         borderWidth: 2,
         borderColor: "#FFFFFF",
+        alignContent: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "34px",
     },
     buttonText: {
         color: "#FFFFFF",
