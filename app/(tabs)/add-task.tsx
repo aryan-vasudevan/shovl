@@ -221,7 +221,7 @@ export default function AddTaskScreen() {
             await addDoc(collection(db, "tasks"), taskData);
 
             Alert.alert("Success", "Task created successfully!");
-            router.push("/");
+            router.push("/dashboard");
         } catch (error) {
             Alert.alert("Error", "Failed to submit task.");
             console.error("Error submitting task:", error);

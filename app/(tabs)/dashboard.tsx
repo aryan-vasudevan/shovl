@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    ActivityIndicator,
+    Image,
+    TouchableOpacity,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -93,6 +100,24 @@ export default function HomeScreen() {
             </ThemedView>
 
             <ThemedView style={styles.mainContainer}>
+                <View style={styles.inline}>
+                    <TouchableOpacity
+                        onPress={() => router.push("/view-tasks")}
+                        style={styles.dashButtons}
+                    >
+                        <ThemedText style={styles.buttonText}>
+                            VIEW TASKS
+                        </ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => router.push("/add-task")}
+                        style={styles.dashButtons}
+                    >
+                        <ThemedText style={styles.buttonText}>
+                            ADD TASK
+                        </ThemedText>
+                    </TouchableOpacity>
+                </View>
                 <ThemedText style={styles.coins2}>your rank:</ThemedText>
                 <Image
                     source={require("../../assets/fonts/bronze.png")}
@@ -126,6 +151,11 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontFamily: "norwester",
     },
+    dashButtons: {
+        borderRadius: "10px",
+        backgroundColor: "#0266CC",
+        padding: 10,
+    },
     coinsContainer: {
         flexDirection: "row",
         backgroundColor: "transparent",
@@ -147,7 +177,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         textAlign: "center",
         fontFamily: "norwester",
-        top: 20,
+        marginVertical: 24,
     },
     coinsYellow: {
         fontSize: 35,
@@ -155,6 +185,12 @@ const styles = StyleSheet.create({
         color: "#ffdc5c",
         textAlign: "left",
         fontFamily: "norwester",
+    },
+    inline: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        width: "100%",
     },
     mainContainer: {
         marginTop: 30,
@@ -167,13 +203,14 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        gap: "34px",
+        paddingTop: 30,
+        // justifyContent: "space",
+        // gap: "34px",
     },
     buttonText: {
         color: "#FFFFFF",
         fontWeight: "bold",
-        fontSize: 24,
+        fontSize: 16,
         fontFamily: "norwester",
     },
     loading: { flex: 1, justifyContent: "center", alignItems: "center" },
