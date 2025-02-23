@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    ActivityIndicator,
-    Image,
-} from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import Lottie from "lottie-react-native";
 import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import BottomBar from "@/components/BottomBar";
+import { auth, db } from "../../firebase.config"; // Ensure correct Firebase import
+import { doc, getDoc } from "firebase/firestore";
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -24,6 +18,10 @@ export default function HomeScreen() {
         height: 0,
     });
     const [isMounted, setIsMounted] = useState(false);
+    const [userName, setUserName] = useState<string | null>(null);
+    const [points, setPoints] = useState<number | null>(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+
     const [fontsLoaded] = useFonts({
         norwester: require("../../assets/fonts/norwester.otf"),
     });
@@ -33,6 +31,30 @@ export default function HomeScreen() {
         return () => {
             setIsMounted(false);
         };
+    }, []);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!auth.currentUser) return;
+
+            try {
+                const userDocRef = doc(db, "users", auth.currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    setUserName(userDocSnap.data().userName);
+                    setPoints(userDocSnap.data().points);
+                } else {
+                    console.warn("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            } finally {
+                setLoadingUser(false);
+            }
+        };
+
+        fetchUserData();
     }, []);
 
     const handleImageLoad = (event: any) => {
@@ -52,34 +74,12 @@ export default function HomeScreen() {
                     opacity: 0.5,
                 }}
                 source={require("../../assets/fonts/fog.png")}
-                onLoad={handleImageLoad} // Adding the load event
+                onLoad={handleImageLoad}
             />
-
-            {/* Ensure that Lottie only renders if image is loaded and has valid dimensions */}
-            {isMounted &&
-            isImageLoaded &&
-            imageDimensions.width > 0 &&
-            imageDimensions.height > 0 ? (
-                <View
-                    pointerEvents="none"
-                    style={{
-                        zIndex: -2,
-                        position: "absolute",
-                        top: 0,
-                        width: 1000,
-                        height: 1000,
-                    }}
-                >
-                    <Lottie source={snowData} autoPlay loop />
-                </View>
-            ) : (
-                <ActivityIndicator size="large" color="#0066CC" />
-            )}
-
             {/* Content */}
             <ThemedView style={styles.titleContainer}>
                 <ThemedText type="title" style={styles.title}>
-                    welcome back {"[user]"}
+                    welcome back {loadingUser ? "..." : userName}
                 </ThemedText>
             </ThemedView>
 
@@ -88,7 +88,7 @@ export default function HomeScreen() {
                     snocoins: &nbsp;
                 </ThemedText>
                 <ThemedText type="title" style={styles.coinsYellow}>
-                    {"coins₵"}
+                    {loadingUser ? "..." : points !== null ? points : "0"}₵
                 </ThemedText>
             </ThemedView>
 
