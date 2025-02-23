@@ -8,6 +8,8 @@ export default function Layout() {
             <Stack.Screen name="register" />
             <Stack.Screen name="add-task" />
             <Stack.Screen name="view-tasks" />
+            <Stack.Screen name="friends" />
+            <Stack.Screen name="profile" />
         </Stack>
     );
 }

@@ -42,14 +42,15 @@ export default function RegisterScreen() {
       );
       const user = userCredential.user;
 
-      // Store user data in Firestore using UID as the document ID
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        userName: userName,
-        friends: [],
-        points: 0, // New users start with 0 points
-      });
+            // Store user data in Firestore using UID as the document ID
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                email: user.email,
+                userName: userName,
+                friends: [user.uid],
+                points: 0, 
+                tasksCompleted: 0,
+            });
 
       Alert.alert("Success", "Account created!");
       router.push("/login");

@@ -7,9 +7,12 @@ import {
     StyleSheet,
     ActivityIndicator,
     Button,
+    TouchableOpacity,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { db } from "../../firebase.config";
 import { collection, getDocs } from "firebase/firestore";
+import BottomBar from "@/components/BottomBar";
 
 // Haversine formula to calculate distance in km
 const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -39,20 +42,19 @@ const formatDate = (timestamp: string) => {
     const weeksDiff = Math.floor(daysDiff / 7); // Difference in weeks
     const monthsDiff = Math.floor(daysDiff / 30); // Difference in months
 
-    if (minutesDiff < 60) {
+    if (minutesDiff < 60)
         return `${minutesDiff} minute${minutesDiff !== 1 ? "s" : ""} ago`;
-    } else if (hoursDiff < 24) {
+    if (hoursDiff < 24)
         return `${hoursDiff} hour${hoursDiff !== 1 ? "s" : ""} ago`;
-    } else if (daysDiff < 7) {
-        return `${daysDiff} day${daysDiff !== 1 ? "s" : ""} ago`;
-    } else if (weeksDiff < 4) {
+    if (daysDiff < 7) return `${daysDiff} day${daysDiff !== 1 ? "s" : ""} ago`;
+    if (weeksDiff < 4)
         return `${weeksDiff} week${weeksDiff !== 1 ? "s" : ""} ago`;
-    } else {
-        return `${monthsDiff} month${monthsDiff !== 1 ? "s" : ""} ago`;
-    }
+
+    return `${monthsDiff} month${monthsDiff !== 1 ? "s" : ""} ago`;
 };
 
-export default function ViewTasksScreen() {
+export default function ViewTasksScreen({ route }: { route: any }) {
+    const { userId } = route.params; 
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<{
@@ -60,6 +62,7 @@ export default function ViewTasksScreen() {
         longitude: number;
     } | null>(null);
     const [sortBy, setSortBy] = useState<"date" | "distance">("date"); // Default sorting by date
+    const router = useRouter();
 
     // Fetch tasks from Firestore
     useEffect(() => {
@@ -67,7 +70,10 @@ export default function ViewTasksScreen() {
             try {
                 const tasksCollection = collection(db, "tasks");
                 const tasksSnapshot = await getDocs(tasksCollection);
-                const tasksList = tasksSnapshot.docs.map((doc) => doc.data());
+                const tasksList = tasksSnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
                 setTasks(tasksList);
             } catch (error) {
                 console.error("Error fetching tasks:", error);
@@ -81,18 +87,23 @@ export default function ViewTasksScreen() {
 
     // Get user's current location
     useEffect(() => {
-        const getUserLocation = () => {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                    });
-                },
-                (error) => {
-                    console.error("Error getting user location:", error);
+        const getUserLocation = async () => {
+            try {
+                let { status } =
+                    await Location.requestForegroundPermissionsAsync();
+                if (status !== "granted") {
+                    console.error("Permission to access location was denied");
+                    return;
                 }
-            );
+
+                let location = await Location.getCurrentPositionAsync({});
+                setUserLocation({
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                });
+            } catch (error) {
+                console.error("Error getting user location:", error);
+            }
         };
 
         getUserLocation();
@@ -102,14 +113,13 @@ export default function ViewTasksScreen() {
     const sortTasks = (tasks: any[]) => {
         if (!userLocation) return tasks; // Return tasks as is if user location isn't available yet
 
-        if (sortBy === "date") {
-            return tasks.sort(
-                (a, b) =>
+        return [...tasks].sort((a, b) => {
+            if (sortBy === "date") {
+                return (
                     new Date(b.timestamp).getTime() -
                     new Date(a.timestamp).getTime()
-            );
-        } else if (sortBy === "distance") {
-            return tasks.sort((a, b) => {
+                );
+            } else if (sortBy === "distance") {
                 const distA = distance(
                     userLocation.latitude,
                     userLocation.longitude,
@@ -123,9 +133,9 @@ export default function ViewTasksScreen() {
                     b.longitude
                 );
                 return distA - distB;
-            });
-        }
-        return tasks;
+            }
+            return 0;
+        });
     };
 
     // Render each task with formatted date and distance
@@ -140,15 +150,27 @@ export default function ViewTasksScreen() {
         ).toFixed(2); // Calculate and round the distance to 2 decimal places
 
         return (
-            <View style={styles.taskCard}>
-                <Image source={{ uri: item.photo }} style={styles.taskImage} />
-                <Text style={styles.taskText}>
-                    Posted {formatDate(item.timestamp)}
-                </Text>
-                <Text style={styles.taskText}>
-                    Distance: {taskDistance} km
-                </Text>
-            </View>
+            <TouchableOpacity
+                onPress={() =>
+                    router.push({
+                        pathname: "/complete-task",
+                        params: { taskId: item.id, userId: userId }, // ✅ Fix: Replace with actual userId
+                    })
+                }
+            >
+                <View style={styles.taskCard}>
+                    <Image
+                        source={{ uri: item.photo }}
+                        style={styles.taskImage}
+                    />
+                    <Text style={styles.taskText}>
+                        Posted {formatDate(item.timestamp)}
+                    </Text>
+                    <Text style={styles.taskText}>
+                        Distance: {taskDistance} km
+                    </Text>
+                </View>
+            </TouchableOpacity>
         );
     };
 
@@ -175,12 +197,13 @@ export default function ViewTasksScreen() {
                     </View>
 
                     <FlatList
-                        data={sortTasks(tasks)} // Apply sorting before rendering
+                        data={sortTasks(tasks)}
                         renderItem={renderItem}
-                        keyExtractor={(item, index) => index.toString()}
+                        keyExtractor={(item) => item.id}
                     />
                 </>
             )}
+            <BottomBar />
         </View>
     );
 }
@@ -188,8 +211,9 @@ export default function ViewTasksScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        // padding: 20,
         backgroundColor: "#F9F9F9",
+        paddingBottom: 60,
     },
     toggleContainer: {
         flexDirection: "row",

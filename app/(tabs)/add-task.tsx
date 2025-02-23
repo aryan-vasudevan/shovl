@@ -13,7 +13,7 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { db } from "../../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
-import uuid from "react-native-uuid";
+import axios from "axios";
 
 export default function AddTaskScreen() {
     const router = useRouter();
@@ -61,8 +61,8 @@ export default function AddTaskScreen() {
 
         const formData = new FormData();
         formData.append("file", blob);
-        formData.append("upload_preset", "ml_default"); 
-        formData.append("api_key", "556837874624961"); 
+        formData.append("upload_preset", "ml_default");
+        formData.append("api_key", "556837874624961");
 
         try {
             const cloudinaryResponse = await fetch(
@@ -84,11 +84,62 @@ export default function AddTaskScreen() {
         } catch (error) {
             console.error("Cloudinary upload error:", error);
             throw new Error(
-                "Error uploading image to Cloudinary: " + (error as Error).message
+                "Error uploading image to Cloudinary: " +
+                    (error as Error).message
             );
         }
     };
- 
+
+    const getSnowCoveragePoints = async (imageUrl: string) => {
+        try {
+            const response = await axios.post(
+                "https://detect.roboflow.com/snow-detection-11m4t/1",
+                null,
+                {
+                    params: {
+                        api_key: "e0MsKsQAKbK13vS6G8rM",
+                        image: imageUrl,
+                    },
+                }
+            );
+
+            console.log(
+                "Roboflow Response:",
+                JSON.stringify(response.data, null, 2)
+            );
+
+            const predictions = response.data.predictions || [];
+
+            if (predictions.length === 0) {
+                console.warn("No objects detected.");
+                return 1; // If no snow detected, return the minimum points
+            }
+
+            // Calculate the total area of all snow piles (width * height for each prediction)
+            let totalArea = predictions.reduce(
+                (sum: number, p: any) => sum + p.width * p.height,
+                0
+            );
+
+            console.log("Total Area (width * height):", totalArea);
+
+            // Adjust the scaling factor based on the average photo's total area of 600,000
+            const scalingFactor = 5 / 600000; 
+            let scaledPoints = totalArea * scalingFactor;
+
+            // Cap the points at 10 (maximum)
+            scaledPoints = Math.min(scaledPoints, 10);
+
+            // Ensure points are at least 1 (minimum)
+            scaledPoints = Math.max(scaledPoints, 2);
+
+            console.log("Calculated Points (scaled):", scaledPoints);
+            return Math.round(scaledPoints);
+        } catch (error) {
+            console.error("Error calculating snow coverage:", error);
+            return 1; // Return minimum points in case of error
+        }
+    };
 
     const handleSubmit = async () => {
         if (!photo || !location) {
@@ -103,12 +154,14 @@ export default function AddTaskScreen() {
 
         try {
             const imageUrl = await uploadImageToCloudinary(photo); // Upload image to Cloudinary
-            console.log(imageUrl);
+            const points = await getSnowCoveragePoints(imageUrl); // Get snow coverage points
+
             const taskData = {
-                photo: imageUrl, // Store the image URL
+                photo: imageUrl,
                 latitude: location.latitude,
                 longitude: location.longitude,
                 timestamp: new Date().toISOString(),
+                points, // Store calculated points
             };
 
             await addDoc(collection(db, "tasks"), taskData);

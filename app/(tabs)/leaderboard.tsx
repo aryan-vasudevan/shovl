@@ -16,6 +16,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import BottomBar from "@/components/BottomBar";
 
 export default function Leaderboard() {
   const [userData, setUserData] = useState<{

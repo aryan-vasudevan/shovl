@@ -17,6 +17,7 @@ import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
 import { useRef } from "react";
+import BottomBar from "@/components/BottomBar";
 
 export default function HomeScreen() {
   const snowRef = useRef<LottieRefCurrentProps>(null);
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   const [userData, setUserData] = useState<{
     email: string;
     points: number;
+        userName: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,29 +59,38 @@ export default function HomeScreen() {
 
     return () => clearTimeout(timeout);
   }, []);
+    const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
-      // No user is logged in
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    useEffect(() => {
+        setMounted(true); // Ensure the component is mounted before taking action
 
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data() as { email: string; points: number });
-        } else {
-          console.log("No user data found.");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        const fetchUserData = async () => {
+            if (!auth.currentUser) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(
+                    doc(db, "users", auth.currentUser.uid)
+                );
+                if (userDoc.exists()) {
+                    setUserData(
+                        userDoc.data() as {
+                            email: string;
+                            points: number;
+                            userName: string;
+                        }
+                    );
+                } else {
+                    console.log("No user data found.");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
     fetchUserData();
   }, []);
