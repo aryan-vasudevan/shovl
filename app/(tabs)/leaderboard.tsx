@@ -17,7 +17,10 @@ import {
   where,
 } from "firebase/firestore";
 import BottomBar from "@/components/BottomBar";
+import { ThemedText } from "@/components/ThemedText";
+import { useFonts
 
+ } from "expo-font";
 export default function Leaderboard() {
   const [userData, setUserData] = useState<{
     email: string;
@@ -27,6 +30,9 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [messageCode, setMessageCode] = useState(0);
   const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    norwester: require("../../assets/fonts/norwester.otf"),
+  });
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -97,10 +103,11 @@ export default function Leaderboard() {
 
   return (
     <View style={styles.container}>
+      <ThemedText style={styles.title}>monthly leaderboard</ThemedText>
       {/* <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text> */}
       {messageCode === 0 ? (
         <div>
-          <FlatList
+          <FlatList style={styles.container2}
             data={friends}
             keyExtractor={(item) => item.userName}
             renderItem={({ item, index }) => (
@@ -128,7 +135,7 @@ export default function Leaderboard() {
       ) : (
         <Text>Error loading friends.</Text>
       )}
-      <BottomBar/>
+      <BottomBar />
     </View>
   );
 }
@@ -139,13 +146,26 @@ const styles = StyleSheet.create({
   bronze: { color: "#b2935a" },
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#0F2141",
+  },
+  container2: {
+    flex: 1,
+    backgroundColor: "#0F2141",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    width: "102%",
+    left: -2,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 48,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 10,
+    fontFamily: "norwester",
+    marginTop: 20,
+    lineHeight: 60,
   },
   loadingText: {
     textAlign: "center",
@@ -169,15 +189,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: "70%",
+    left: "15%",
   },
   rank: {
     fontWeight: "bold",
     fontSize: 18,
+    fontFamily: "norwester",
   },
   userName: {
     flex: 1,
     fontSize: 18,
     fontWeight: "500",
+    fontFamily: "norwester",
   },
   points: {
     fontSize: 16,
