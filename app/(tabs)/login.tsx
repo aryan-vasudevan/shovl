@@ -56,6 +56,16 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <Image
+        style={{
+          width: 350,
+          height: 350,
+          position: "absolute",
+          top: 0,
+          opacity: 0.5,
+        }}
+        source={require("../../assets/fonts/fog.png")}
+      />
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title" style={styles.title}>
           login
