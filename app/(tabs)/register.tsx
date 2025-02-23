@@ -47,7 +47,8 @@ export default function RegisterScreen() {
                 email: user.email,
                 userName: userName,
                 friends: [user.uid],
-                points: 0, // New users start with 0 points
+                points: 0, 
+                tasksCompleted: 0,
             });
 
             Alert.alert("Success", "Account created!");
