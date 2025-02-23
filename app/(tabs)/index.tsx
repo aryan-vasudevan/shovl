@@ -57,8 +57,6 @@ export default function HomeScreen() {
         fetchUserData();
     }, []);
 
-    // Redirect only after data is fetched and component is mounted
-
     if (loading) {
         return (
             <ActivityIndicator
@@ -141,7 +139,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#102141",
         paddingHorizontal: 16,
     },
-    titleContainer: {
+    titleContainer: { 
         backgroundColor: "#F9F9F9",
         marginBottom: 20,
     },
