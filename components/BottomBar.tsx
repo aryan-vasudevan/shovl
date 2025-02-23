@@ -16,7 +16,7 @@ export default function BottomBar() {
         } else if (s === "friends") {
             router.push("/(tabs)/friends");
         } else if (s === "profile") {
-            console.log("profile")
+            router.push("/(tabs)/profile");
         }
     }
 

@@ -72,7 +72,7 @@ export default function RegisterScreen() {
                 style={styles.input}
             />
 
-            <TextInput 
+            <TextInput
                 placeholder="Username"
                 value={userName}
                 onChangeText={setUserName}
