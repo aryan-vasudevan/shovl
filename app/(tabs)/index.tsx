@@ -55,7 +55,7 @@ export default function HomeScreen() {
       if (snowRef.current) {
         snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
       }
-    }, 50); // Delay to ensure the animation is loaded
+    }, 5000); // Delay to ensure the animation is loaded
 
     return () => clearTimeout(timeout);
   }, []);
