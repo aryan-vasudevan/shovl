@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F9F9F9",
+        backgroundColor: "#08142C",
     },
     button: {
         backgroundColor: "#0066CC",
