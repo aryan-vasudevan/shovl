@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         marginTop: 30,
         backgroundColor: "#0F2141",
-        width: "100%",
+        width: "150%",
         height: "80%",
         borderWidth: 2,
         borderColor: "#FFFFFF",
