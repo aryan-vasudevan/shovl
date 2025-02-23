@@ -93,7 +93,7 @@ function HomeScreen() {
           width: 1000,
           height: 1000,
         }}
-        speed = 0.5
+        // speed = 0.5
       />
 
       {/* <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text> */}
