@@ -10,28 +10,35 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { db } from "../../firebase.config";
+import { db, auth } from "../../firebase.config"; // Import db and auth
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import axios from "axios";
 
 export default function CompleteTaskScreen() {
-    const { taskId, userUid } = useLocalSearchParams<{
-        taskId: string;
-        userUid: string;
-    }>(); // Ensure correct types
+    const { taskId } = useLocalSearchParams(); // Getting taskId from query params
+    const [taskUid, setTaskUid] = useState("");
     const [userName, setUserName] = useState<string | null>(null);
     const [photo, setPhoto] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
+    // Set taskUid once when taskId is available
+    useEffect(() => {
+        if (taskId) {
+            setTaskUid(taskId as string);
+        }
+    }, [taskId]); // Only runs when taskId changes
+
     useEffect(() => {
         const fetchUserName = async () => {
+            const userUid = auth.currentUser?.uid;
             if (!userUid) return;
+            console.log(userUid);
 
             try {
                 const userDoc = await getDoc(doc(db, "users", userUid));
                 if (userDoc.exists()) {
-                    setUserName(userDoc.data()?.username || "Unknown User"); // Ensure correct field name
+                    setUserName(userDoc.data()?.username || "Unknown User");
                 } else {
                     console.log("No user data found.");
                 }
@@ -41,10 +48,14 @@ export default function CompleteTaskScreen() {
         };
 
         fetchUserName();
-    }, [userUid]);
+    }, []);
 
-    // Pick an image
     const pickImage = async () => {
+        if (!auth.currentUser) {
+            Alert.alert("Error", "You must be signed in to upload an image.");
+            return;
+        }
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: "images",
             allowsEditing: true,
@@ -57,13 +68,12 @@ export default function CompleteTaskScreen() {
         }
     };
 
-    // Upload image to Cloudinary
     const uploadImageToCloudinary = async (uri: string) => {
         const response = await fetch(uri);
         const blob = await response.blob();
 
         const formData = new FormData();
-        formData.append("file", blob, "photo.jpg"); // Ensure filename
+        formData.append("file", blob, "photo.jpg");
         formData.append("upload_preset", "ml_default");
         formData.append("api_key", "556837874624961");
 
@@ -81,14 +91,13 @@ export default function CompleteTaskScreen() {
                 throw new Error("Cloudinary upload failed.");
             }
 
-            return data.secure_url; // Return the image URL from Cloudinary
+            return data.secure_url;
         } catch (error) {
             console.error("Cloudinary upload error:", error);
             throw new Error("Error uploading image to Cloudinary.");
         }
     };
 
-    // Calculate points using Roboflow
     const calculatePoints = async (imageUrl: string) => {
         try {
             const response = await axios.post(
@@ -102,13 +111,11 @@ export default function CompleteTaskScreen() {
                 }
             );
 
-            // Sum width * height for all detections
             const totalSnow = response.data.predictions.reduce(
                 (sum: number, obj: any) => sum + obj.width * obj.height,
                 0
             );
 
-            // Scale down to 1-10 range
             return Math.round(
                 Math.min(10, Math.max(1, (totalSnow / 600000) * 10))
             );
@@ -119,35 +126,32 @@ export default function CompleteTaskScreen() {
         }
     };
 
-    // Handle task completion
     const handleSubmit = async () => {
-        if (!photo || !taskId || !userUid) {
+        const userUid = auth.currentUser?.uid;
+        if (!userUid) {
+            Alert.alert("Error", "You must be signed in to submit a task.");
+            return;
+        }
+
+        if (!photo || !taskUid) {
             Alert.alert("Error", "Missing required data.");
-            console.log(userUid);
             return;
         }
 
         setLoading(true);
 
         try {
-            console.log("Submitting task completion...");
-            console.log("User UID:", userUid);
-            console.log("Task ID:", taskId);
-
-            // Upload image
             const imageUrl = await uploadImageToCloudinary(photo);
 
-            // Fetch original task data
-            const taskRef = doc(db, "tasks", taskId);
+            const taskRef = doc(db, "tasks", taskUid); // Firestore doc reference
             const taskSnap = await getDoc(taskRef);
 
             if (!taskSnap.exists()) {
                 throw new Error("Task not found.");
             }
 
-            const originalPoints = taskSnap.data()?.points ?? 0; // Use original points only
+            const originalPoints = taskSnap.data()?.points ?? 0;
 
-            // Fetch user document
             const userRef = doc(db, "users", userUid);
             const userSnap = await getDoc(userRef);
 
@@ -160,15 +164,13 @@ export default function CompleteTaskScreen() {
             }
 
             const currentPoints = userSnap.data()?.points ?? 0;
-            const originalTasksCompleted = userSnap.data()?.tasksCompleted ?? 0
+            const originalTasksCompleted = userSnap.data()?.tasksCompleted ?? 0;
 
-            // Update user's points using only the original task points
             await updateDoc(userRef, {
                 points: currentPoints + originalPoints,
-                tasksCompleted: originalTasksCompleted + 1
+                tasksCompleted: originalTasksCompleted + 1,
             });
 
-            // Mark task as completed
             await updateDoc(taskRef, { completed: true });
 
             Alert.alert(

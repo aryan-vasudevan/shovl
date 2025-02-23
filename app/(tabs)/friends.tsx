@@ -7,17 +7,28 @@ import {
     StyleSheet,
     ActivityIndicator,
     FlatList,
-    Image
+    Image,
 } from "react-native";
 import { auth, db } from "../../firebase.config";
-import { collection, query, where, getDocs, getDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    getDoc,
+    doc,
+    updateDoc,
+    arrayUnion,
+} from "firebase/firestore";
 import BottomBar from "@/components/BottomBar";
 
 export default function Friends() {
     const [targetUserName, setTargetUserName] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const [friends, setFriends] = useState<{ uid: any; userName: any; points: any; }[]>([]); // State to store friends
+    const [friends, setFriends] = useState<
+        { uid: any; userName: any; points: any }[]
+    >([]); // State to store friends
     const [userName, setUserName] = useState("");
 
     const handleSubmit = async (userName: string) => {
@@ -91,10 +102,13 @@ export default function Friends() {
 
                 // Fetch details of each friend
                 if (friendUids.length > 0) {
-                    const friendsQuery = query(collection(db, "users"), where("uid", "in", friendUids));
+                    const friendsQuery = query(
+                        collection(db, "users"),
+                        where("uid", "in", friendUids)
+                    );
                     const friendsSnapshot = await getDocs(friendsQuery);
 
-                    const friendsList = friendsSnapshot.docs.map(doc => ({
+                    const friendsList = friendsSnapshot.docs.map((doc) => ({
                         uid: doc.data().uid,
                         userName: doc.data().userName,
                         points: doc.data().points || 0, // Assuming there's a "points" field
@@ -120,37 +134,47 @@ export default function Friends() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>FRIENDS LIST</Text>
-            <div style={styles.inline}>
+            <View style={styles.inline}>
                 <TextInput
                     placeholder="Username"
                     value={targetUserName}
                     onChangeText={setTargetUserName}
                     style={styles.input}
                 />
-                <button style={styles.button} onClick={() => handleSubmit(targetUserName)} disabled={loading}>
-                    <Image source={require('../../assets/images/arrow.png')} style={{ width: dimensions, height: dimensions }} />
-                </button>
-            </div>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => handleSubmit(targetUserName)}
+                    disabled={loading}
+                >
+                    <Image
+                        source={require("../../assets/images/arrow.png")}
+                        style={{ width: dimensions, height: dimensions }}
+                    />
+                </TouchableOpacity>
+            </View>
             {loading ? <ActivityIndicator color="white" /> : ""}
             {message ? <Text style={styles.message}>{message}</Text> : null}
-            <FlatList
-                style={styles.listContainer}
-                data={friends}
-                keyExtractor={(item) => item.uid}
-                renderItem={({ item, index }) => (
-                    <div>
-                        {
-                        item.userName != userName ? 
-                            <View style={styles.friendItem}>
-                                <Text style={styles.friendItemText}>{item.userName}</Text>
-                            </View>
-                        : 
-                            ""
-                        }
-                    </div>
-                    
-                )}
-            />
+            {friends.length === 1 ? (
+                <Text style={styles.message}>No friends found.</Text>
+            ) : (
+                <FlatList
+                    style={styles.listContainer}
+                    data={friends}
+                    keyExtractor={(item) => item.uid}
+                    renderItem={({ item, index }) => (
+                        <View>
+                            {item.userName != userName ? (
+                                <View style={styles.friendItem}>
+                                    <Text style={styles.friendItemText}>
+                                        {item.userName}
+                                    </Text>
+                                </View>
+                            ) : null}
+                        </View>
+                    )}
+                />
+            )}
+
             <BottomBar />
         </View>
     );
@@ -212,6 +236,6 @@ const styles = StyleSheet.create({
     },
     friendItemText: {
         color: "white",
-        fontSize: 20
-    }
+        fontSize: 20,
+    },
 });

@@ -215,6 +215,7 @@ export default function AddTaskScreen() {
                 longitude: location.longitude,
                 timestamp: new Date().toISOString(),
                 points: points,
+                completed: false,
             };
 
             await addDoc(collection(db, "tasks"), taskData);

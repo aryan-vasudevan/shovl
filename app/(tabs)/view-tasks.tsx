@@ -76,7 +76,12 @@ export default function ViewTasksScreen() {
                     id: doc.id,
                     ...doc.data(),
                 }));
-                setTasks(tasksList);
+                console.log(tasksList);
+                const incompleteTasks = tasksList.filter(
+                    (task) => task.completed === false
+                );
+
+                setTasks(incompleteTasks);
             } catch (error) {
                 console.error("Error fetching tasks:", error);
             } finally {
