@@ -139,7 +139,6 @@ const styles = StyleSheet.create({
   bronze: { color: "#b2935a" },
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#f8f8f8",
   },
   title: {

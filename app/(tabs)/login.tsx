@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase.config";
@@ -16,12 +17,13 @@ import { ThemedView } from "@/components/ThemedView";
 import flagData from "../../assets/fonts/flag.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
-import Lottie from "lottie-react";
+import Lottie from "lottie-react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const isMounted = useRef(false);
   const [fontsLoaded] = useFonts({
     norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
   });
@@ -54,6 +56,12 @@ export default function LoginScreen() {
     }
   };
 
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+        isMounted.current = false;
+    }
+  })
   return (
     <View style={styles.container}>
       <Image
@@ -122,16 +130,32 @@ export default function LoginScreen() {
           zIndex: -1,
         }}
       />
-      <Lottie
-        animationData={flagData}
-        style={{
-          width: 66,
-          height: 80,
-          position: "absolute",
-          top: 448,
-          left: 80,
-        }}
-      />
+          {isMounted ? (
+              <View
+                  style={{
+                      position: "absolute",
+                      top: 448,
+                      left: 80,
+                      width: 66,
+                      height: 80,
+                      overflow: "hidden"
+                  }}
+                  pointerEvents="none"
+              >
+                  <Lottie
+                      source={flagData}
+                      autoPlay
+                      loop
+                      style={{
+                          width: "100%",
+                          height: "100%",
+                      }}
+                  />
+              </View>
+          ) : (
+              <ActivityIndicator size="large" color="#0066CC" />
+          )}
+
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -12,20 +12,29 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import { ThemedView } from "@/components/ThemedView";
-import Lottie, { LottieRefCurrentProps } from "lottie-react";
+import Lottie from "lottie-react-native";
 import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
-import { useRef } from "react";
-import BottomBar from "@/components/BottomBar";
 
 export default function HomeScreen() {
-  // const snowRef = useRef<LottieRefCurrentProps>(null);
+  const router = useRouter();
   const scaleValue = useRef(new Animated.Value(1)).current;
+  const [isMounted, setIsMounted] = useState(false);
+  const [userData, setUserData] = useState<{
+    email: string;
+    points: number;
+    userName: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [fontsLoaded] = useFonts({
+    norwester: require("../../assets/fonts/norwester.otf"),
+  });
 
   const handlePressIn = () => {
     Animated.timing(scaleValue, {
-      toValue: 1.1, // Scale up
+      toValue: 1.1,
       duration: 150,
       useNativeDriver: true,
     }).start();
@@ -33,66 +42,44 @@ export default function HomeScreen() {
 
   const handlePressOut = () => {
     Animated.timing(scaleValue, {
-      toValue: 1, // Scale back to original size
+      toValue: 1,
       duration: 150,
       useNativeDriver: true,
     }).start();
   };
-  const router = useRouter();
-  const [fontsLoaded] = useFonts({
-    norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
-  });
 
-  const [userData, setUserData] = useState<{
-    email: string;
-    points: number;
-        userName: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setIsMounted(true);
 
-  // useEffect(() => {
-  //   const timeout = setTimeout(() => {
-  //     if (snowRef.current) {
-  //       snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
-  //     }
-  //   }, 5000); // Delay to ensure the animation is loaded
+    const fetchUserData = async () => {
+      if (!auth.currentUser) {
+        setLoading(false);
+        return;
+      }
 
-  //   return () => clearTimeout(timeout);
-  // }, []);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true); // Ensure the component is mounted before taking action
-
-        const fetchUserData = async () => {
-            if (!auth.currentUser) {
-                setLoading(false);
-                return;
+      try {
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+        if (userDoc.exists()) {
+          setUserData(
+            userDoc.data() as {
+              email: string;
+              points: number;
+              userName: string;
             }
-
-            try {
-                const userDoc = await getDoc(
-                    doc(db, "users", auth.currentUser.uid)
-                );
-                if (userDoc.exists()) {
-                    setUserData(
-                        userDoc.data() as {
-                            email: string;
-                            points: number;
-                            userName: string;
-                        }
-                    );
-                } else {
-                    console.log("No user data found.");
-                }
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+          );
+        } else {
+          console.log("No user data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchUserData();
+
+    return () => setIsMounted(false);
   }, []);
 
   if (loading) {
@@ -113,56 +100,54 @@ export default function HomeScreen() {
         }}
         source={require("../../assets/fonts/fog.png")}
       />
-      <Lottie
-        animationData={snowData}
-        style={{
-          zIndex: -2,
-          position: "absolute",
-          top: 0,
-          width: 1000,
-          height: 1000,
-        }}
-        // lottieRef={snowRef}
-      />
 
-      <>
-        <ThemedView style={styles.titleContainer}>
-          {/* <Lottie
-              animationData={flagData}
-              style={{
-                width: 100,
-                height: 50,
-                position: "absolute",
-                left: 228,
-                top: 35,
-                transform: "rotate(16deg)", // Wrap in quotes
-              }}
-            /> */}
-          <Image
-            style={{ width: 320, height: 250 }}
-            source={require("../../assets/fonts/shovltitle.png")}
-            resizeMode="cover"
-          />
-        </ThemedView>
-        <Text style={styles.infoText}>gamifying canada's</Text>
-        <Text style={styles.infoText}>least-favorite chore</Text>
-
-        {/* <Text style={styles.infoText}>Sign up to start earning rewards.</Text> */}
-        <TouchableWithoutFeedback
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          onPress={() => router.push("/login")}
+      {isMounted && (
+        <View
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+          }}
+          pointerEvents="none"
         >
-          <Animated.View
-            style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
-          >
-            <Image
-              source={require("../../assets/fonts/login.png")}
-              style={{ width: 120, height: 50 }}
-            />
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </>
+          <Lottie
+            source={snowData}
+            autoPlay
+            loop
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+          />
+        </View>
+      )}
+
+      <ThemedView style={styles.titleContainer}>
+        <Image
+          style={{ width: 320, height: 250 }}
+          source={require("../../assets/fonts/shovltitle.png")}
+          resizeMode="cover"
+        />
+      </ThemedView>
+
+      <Text style={styles.infoText}>gamifying canada's</Text>
+      <Text style={styles.infoText}>least-favorite chore</Text>
+
+      <TouchableWithoutFeedback
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => router.push("/login")}
+      >
+        <Animated.View
+          style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
+        >
+          <Image
+            source={require("../../assets/fonts/login.png")}
+            style={{ width: 120, height: 50 }}
+          />
+        </Animated.View>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
@@ -181,35 +166,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     top: 100,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    fontFamily: "norwester",
-  },
-  userData: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
   infoText: {
     fontSize: 21.5,
-    marginBottom: 0,
     textAlign: "center",
     color: "#FFFFFF",
     fontFamily: "norwester",
     top: -15,
-  },
-  button: {
-    width: "80%",
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-    backgroundColor: "transparent",
-    marginTop: 20,
-    alignItems: "center",
   },
   button2: {
     width: "80%",
@@ -221,12 +183,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
     top: 40,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 24,
-    fontFamily: "norwester",
   },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

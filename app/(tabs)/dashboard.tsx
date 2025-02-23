@@ -5,37 +5,39 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  TouchableWithoutFeedback,
-  Animated,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { auth, db } from "../../firebase.config";
-import { doc, getDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import Lottie, { LottieRefCurrentProps } from "lottie-react";
+import Lottie from "lottie-react-native";
 import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
-import { Image } from "react-native";
-import { useRef } from "react";
 import BottomBar from "@/components/BottomBar";
-export default function HomeScreen() {
-  // const snowRef = useRef<LottieRefCurrentProps>(null);
 
+export default function HomeScreen() {
   const router = useRouter();
+
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [isMounted, setIsMounted] = useState(false);
   const [fontsLoaded] = useFonts({
-    norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
+    norwester: require("../../assets/fonts/norwester.otf"),
   });
 
-  // useEffect(() => {
-  //   const timeout = setTimeout(() => {
-  //     if (snowRef.current) {
-  //       snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
-  //     }
-  //   }, 50); // Delay to ensure the animation is loaded
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
 
-  //   return () => clearTimeout(timeout);
-  // }, []);
+  const handleImageLoad = (event: any) => {
+    const { width, height } = event.nativeEvent;
+    setImageDimensions({ width, height });
+    console.log("Image loaded with dimensions:", width, height);
+    setIsImageLoaded(true);
+  };
 
   return (
     <View style={styles.container}>
@@ -48,23 +50,38 @@ export default function HomeScreen() {
           opacity: 0.5,
         }}
         source={require("../../assets/fonts/fog.png")}
+        onLoad={handleImageLoad} // Adding the load event
       />
-      <Lottie
-        animationData={snowData}
-        style={{
-          zIndex: -2,
-          position: "absolute",
-          top: 0,
-          width: 1000,
-          height: 1000,
-        }}
-        // lottieRef={snowRef}
-      />
+      
+      {/* Ensure that Lottie only renders if image is loaded and has valid dimensions */}
+      {isMounted && isImageLoaded && imageDimensions.width > 0 && imageDimensions.height > 0 ? (
+        <View
+          pointerEvents="none"
+          style={{
+            zIndex: -2,
+            position: "absolute",
+            top: 0,
+            width: 1000,
+            height: 1000,
+          }}
+        >
+          <Lottie
+            source={snowData}
+            autoPlay
+            loop
+          />
+        </View>
+      ) : (
+        <ActivityIndicator size="large" color="#0066CC" />
+      )}
+
+      {/* Content */}
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title" style={styles.title}>
           welcome back {"[user]"}
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.coinsContainer}>
         <ThemedText type="title" style={styles.coins}>
           snocoins:
@@ -74,71 +91,19 @@ export default function HomeScreen() {
           {"coins₵"}
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.mainContainer}></ThemedView>
 
-
-                  {/* Buttons
-                  <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                            onPress={() => router.push("/add-task")}
-                            style={styles.button}
-                        >
-                            <Text style={styles.buttonText}>Add Task</Text>
-                        </TouchableOpacity>
-
-
-                        <TouchableOpacity
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/view-tasks",
-                                    params: { userId: userData.userName },
-                                })
-                            }
-                            style={styles.button}
-                        >
-                            <Text style={styles.buttonText}>View Tasks</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            ) : (
-                <>
-                    <ThemedView style={styles.titleContainer}>
-                        <ThemedText type="title" style={styles.title}>
-                            Welcome to shovl!
-                        </ThemedText>
-                    </ThemedView>
-                    <Text style={styles.infoText}>
-                        Earn points by helping your community with snow
-                        shoveling!
-                    </Text>
-                    <Text style={styles.infoText}>
-                        Sign up to start earning rewards.
-                    </Text>
-
-
-                    <TouchableOpacity
-                        onPress={() => router.push("/login")}
-                        style={styles.button}
-                    >
-                        <Text style={styles.buttonText}>Login</Text>
-                    </TouchableOpacity>
-                </>
-            )}
-            <BottomBar /> */}
-            <BottomBar />
+      <BottomBar />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonContainer:{
-
-  },
   container: {
     overflow: "hidden",
     flex: 1,
     alignItems: "center",
-    // justifyContent: "center",
     backgroundColor: "#08142C",
     paddingHorizontal: 16,
   },
@@ -184,40 +149,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderWidth: 2,
     borderColor: "#FFFFFF",
-  },
-  userData: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-  infoText: {
-    fontSize: 21.5,
-    marginBottom: 0,
-    textAlign: "center",
-    color: "#FFFFFF",
-    fontFamily: "norwester",
-    top: -15,
-  },
-  button: {
-    width: "80%",
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-    backgroundColor: "transparent",
-    marginTop: 20,
-    alignItems: "center",
-  },
-  button2: {
-    width: "80%",
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "transparent",
-    backgroundColor: "transparent",
-    marginTop: 20,
-    alignItems: "center",
-    top: 40,
   },
   buttonText: {
     color: "#FFFFFF",
