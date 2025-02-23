@@ -128,6 +128,7 @@ export default function Leaderboard() {
       ) : (
         <Text>Error loading friends.</Text>
       )}
+      <BottomBar/>
     </View>
   );
 }

@@ -20,7 +20,7 @@ import { useRef } from "react";
 import BottomBar from "@/components/BottomBar";
 
 export default function HomeScreen() {
-  const snowRef = useRef<LottieRefCurrentProps>(null);
+  // const snowRef = useRef<LottieRefCurrentProps>(null);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -50,15 +50,15 @@ export default function HomeScreen() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (snowRef.current) {
-        snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
-      }
-    }, 5000); // Delay to ensure the animation is loaded
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     if (snowRef.current) {
+  //       snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
+  //     }
+  //   }, 5000); // Delay to ensure the animation is loaded
 
-    return () => clearTimeout(timeout);
-  }, []);
+  //   return () => clearTimeout(timeout);
+  // }, []);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -122,7 +122,7 @@ export default function HomeScreen() {
           width: 1000,
           height: 1000,
         }}
-        lottieRef={snowRef}
+        // lottieRef={snowRef}
       />
 
       <>

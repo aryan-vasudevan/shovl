@@ -18,24 +18,24 @@ import snowData from "../../assets/fonts/Snow.json";
 import { useFonts } from "expo-font";
 import { Image } from "react-native";
 import { useRef } from "react";
-
+import BottomBar from "@/components/BottomBar";
 export default function HomeScreen() {
-  const snowRef = useRef<LottieRefCurrentProps>(null);
+  // const snowRef = useRef<LottieRefCurrentProps>(null);
 
   const router = useRouter();
   const [fontsLoaded] = useFonts({
     norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
   });
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (snowRef.current) {
-        snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
-      }
-    }, 50); // Delay to ensure the animation is loaded
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     if (snowRef.current) {
+  //       snowRef.current.setSpeed(0.25); // Change speed (1 is normal, lower is slower)
+  //     }
+  //   }, 50); // Delay to ensure the animation is loaded
 
-    return () => clearTimeout(timeout);
-  }, []);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   return (
     <View style={styles.container}>
@@ -58,7 +58,7 @@ export default function HomeScreen() {
           width: 1000,
           height: 1000,
         }}
-        lottieRef={snowRef}
+        // lottieRef={snowRef}
       />
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title" style={styles.title}>
@@ -125,6 +125,7 @@ export default function HomeScreen() {
                 </>
             )}
             <BottomBar /> */}
+            <BottomBar />
     </View>
   );
 }

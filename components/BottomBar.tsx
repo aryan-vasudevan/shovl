@@ -12,7 +12,7 @@ export default function BottomBar() {
         } else if (s === "tasks") {
             router.push("/(tabs)/view-tasks");
         } else if (s === "home") {
-            router.push("/(tabs)");
+            router.push("/(tabs)/dashboard");
         } else if (s === "friends") {
             router.push("/(tabs)/friends");
         } else if (s === "profile") {
