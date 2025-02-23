@@ -18,7 +18,7 @@ export default function HomeScreen() {
     const [userData, setUserData] = useState<{
         email: string;
         points: number;
-        username: string;
+        userName: string;
     } | null>(null);
     const [loading, setLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
@@ -41,7 +41,7 @@ export default function HomeScreen() {
                         userDoc.data() as {
                             email: string;
                             points: number;
-                            username: string;
+                            userName: string;
                         }
                     );
                 } else {
@@ -74,7 +74,7 @@ export default function HomeScreen() {
                 <>
                     <ThemedView style={styles.titleContainer}>
                         <ThemedText type="title" style={styles.title}>
-                            Welcome Back, {userData.username}!
+                            Welcome Back, {userData.userName}!
                         </ThemedText>
                     </ThemedView>
                     <Text style={styles.infoText}>
@@ -94,7 +94,7 @@ export default function HomeScreen() {
                             onPress={() =>
                                 router.push({
                                     pathname: "/view-tasks",
-                                    params: { userId: userData.username },
+                                    params: { userId: userData.userName },
                                 })
                             }
                             style={styles.button}
