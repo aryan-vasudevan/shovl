@@ -1,16 +1,47 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    Image,
+    StyleSheet,
+    Alert,
+    ActivityIndicator,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { db } from "../../firebase.config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import axios from "axios";
 
-export default function CompleteTaskScreen({ route }: { route: any }) {
-    const { taskId, userId } = route.params; // Task ID & User ID passed from task list
-    const router = useRouter();
+export default function CompleteTaskScreen() {
+    const { taskId, userUid } = useLocalSearchParams<{
+        taskId: string;
+        userUid: string;
+    }>(); // Ensure correct types
+    const [userName, setUserName] = useState<string | null>(null);
     const [photo, setPhoto] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            if (!userUid) return;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", userUid));
+                if (userDoc.exists()) {
+                    setUserName(userDoc.data()?.username || "Unknown User"); // Ensure correct field name
+                } else {
+                    console.log("No user data found.");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+
+        fetchUserName();
+    }, [userUid]);
 
     // Pick an image
     const pickImage = async () => {
@@ -26,15 +57,15 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
         }
     };
 
-    // Upload image to Cloudinary (same as before)
+    // Upload image to Cloudinary
     const uploadImageToCloudinary = async (uri: string) => {
         const response = await fetch(uri);
         const blob = await response.blob();
 
         const formData = new FormData();
-        formData.append("file", blob);
-        formData.append("upload_preset", "ml_default"); 
-        formData.append("api_key", "556837874624961"); 
+        formData.append("file", blob, "photo.jpg"); // Ensure filename
+        formData.append("upload_preset", "ml_default");
+        formData.append("api_key", "556837874624961");
 
         try {
             const cloudinaryResponse = await fetch(
@@ -47,24 +78,21 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
 
             const data = await cloudinaryResponse.json();
             if (!data.secure_url) {
-                throw new Error(
-                    "Cloudinary upload failed: " + JSON.stringify(data)
-                );
+                throw new Error("Cloudinary upload failed.");
             }
 
             return data.secure_url; // Return the image URL from Cloudinary
         } catch (error) {
             console.error("Cloudinary upload error:", error);
-            throw new Error(
-                "Error uploading image to Cloudinary: " + (error as Error).message
-            );
+            throw new Error("Error uploading image to Cloudinary.");
         }
     };
 
     // Calculate points using Roboflow
     const calculatePoints = async (imageUrl: string) => {
         try {
-            const response = await axios.post("https://detect.roboflow.com/snow-detection-11m4t/1", 
+            const response = await axios.post(
+                "https://detect.roboflow.com/snow-detection-11m4t/1",
                 {},
                 {
                     params: {
@@ -75,12 +103,15 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
             );
 
             // Sum width * height for all detections
-            const totalSnow = response.data.predictions.reduce((sum: number, obj: any) => sum + obj.width * obj.height, 0);
+            const totalSnow = response.data.predictions.reduce(
+                (sum: number, obj: any) => sum + obj.width * obj.height,
+                0
+            );
 
             // Scale down to 1-10 range
-            const normalizedPoints = Math.min(10, Math.max(1, (totalSnow / 600000) * 10));
-
-            return Math.round(normalizedPoints);
+            return Math.round(
+                Math.min(10, Math.max(1, (totalSnow / 600000) * 10))
+            );
         } catch (error) {
             console.error("Error calculating points:", error);
             Alert.alert("Error", "Failed to analyze image.");
@@ -90,18 +121,23 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
 
     // Handle task completion
     const handleSubmit = async () => {
-        if (!photo) {
-            Alert.alert("Error", "Please select an image.");
+        if (!photo || !taskId || !userUid) {
+            Alert.alert("Error", "Missing required data.");
+            console.log(userUid);
             return;
         }
 
         setLoading(true);
 
         try {
-            // 1. Upload image
+            console.log("Submitting task completion...");
+            console.log("User UID:", userUid);
+            console.log("Task ID:", taskId);
+
+            // Upload image
             const imageUrl = await uploadImageToCloudinary(photo);
 
-            // 2. Fetch original task data
+            // Fetch original task data
             const taskRef = doc(db, "tasks", taskId);
             const taskSnap = await getDoc(taskRef);
 
@@ -109,28 +145,40 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
                 throw new Error("Task not found.");
             }
 
-            const originalPoints = taskSnap.data()?.points ?? 0;
+            const originalPoints = taskSnap.data()?.points ?? 0; // Use original points only
 
-            // 3. Calculate new points
-            const newPoints = await calculatePoints(imageUrl);
-            const pointsEarned = originalPoints - newPoints; // Snow removed
-
-            // 4. Update user’s points
-            const userRef = doc(db, "users", userId);
+            // Fetch user document
+            const userRef = doc(db, "users", userUid);
             const userSnap = await getDoc(userRef);
 
             if (!userSnap.exists()) {
+                console.error(
+                    "User document does not exist in Firestore:",
+                    userUid
+                );
                 throw new Error("User not found.");
             }
 
             const currentPoints = userSnap.data()?.points ?? 0;
-            await updateDoc(userRef, { points: currentPoints + pointsEarned });
+            const originalTasksCompleted = userSnap.data()?.tasksCompleted ?? 0
 
-            // 5. Mark task as completed
+            // Update user's points using only the original task points
+            await updateDoc(userRef, {
+                points: currentPoints + originalPoints,
+                tasksCompleted: originalTasksCompleted + 1
+            });
+
+            // Mark task as completed
             await updateDoc(taskRef, { completed: true });
 
-            Alert.alert("Success", `Task completed! You earned ${pointsEarned} points.`);
-            router.push("/");
+            Alert.alert(
+                "Success",
+                `Task completed! You earned ${originalPoints} points.`
+            );
+            router.push({
+                pathname: "/view-tasks",
+                params: { userUid },
+            });
         } catch (error) {
             Alert.alert("Error", "Failed to complete task.");
             console.error("Error completing task:", error);
@@ -150,7 +198,10 @@ export default function CompleteTaskScreen({ route }: { route: any }) {
             {photo && <Image source={{ uri: photo }} style={styles.preview} />}
 
             {photo && (
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={handleSubmit}
+                >
                     <Text style={styles.buttonText}>Submit Completion</Text>
                 </TouchableOpacity>
             )}

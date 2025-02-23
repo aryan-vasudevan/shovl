@@ -8,8 +8,8 @@ import {
   TouchableWithoutFeedback,
   Animated,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { auth, db } from "../../firebase.config";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { db, auth } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import { ThemedView } from "@/components/ThemedView";
 import Lottie from "lottie-react-native";
@@ -47,6 +47,7 @@ export default function HomeScreen() {
       useNativeDriver: true,
     }).start();
   };
+    const { userUid } = useLocalSearchParams();
 
   useEffect(() => {
     setIsMounted(true);
@@ -80,7 +81,7 @@ export default function HomeScreen() {
     fetchUserData();
 
     return () => setIsMounted(false);
-  }, []);
+  }, [userUid]);
 
   if (loading) {
     return (
