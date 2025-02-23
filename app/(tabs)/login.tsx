@@ -45,7 +45,7 @@ export default function LoginScreen() {
 
       if (userDoc.exists()) {
         console.log("User data:", userDoc.data());
-        router.push("/");
+        router.push("/dashboard");
       } else {
         Alert.alert("Error", "User data not found.");
       }
@@ -63,6 +63,7 @@ export default function LoginScreen() {
           position: "absolute",
           top: 0,
           opacity: 0.5,
+          zIndex: -1,
         }}
         source={require("../../assets/fonts/fog.png")}
       />

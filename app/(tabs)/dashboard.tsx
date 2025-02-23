@@ -11,6 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { auth, db } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
+import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import snowData from "../../assets/fonts/Snow.json";
@@ -20,33 +21,11 @@ import { useRef } from "react";
 
 export default function HomeScreen() {
   const snowRef = useRef<LottieRefCurrentProps>(null);
-  const scaleValue = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
-    Animated.timing(scaleValue, {
-      toValue: 1.1, // Scale up
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.timing(scaleValue, {
-      toValue: 1, // Scale back to original size
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
-  };
   const router = useRouter();
   const [fontsLoaded] = useFonts({
     norwester: require("../../assets/fonts/norwester.otf"), // Replace with your font file
   });
-
-  const [userData, setUserData] = useState<{
-    email: string;
-    points: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -57,38 +36,6 @@ export default function HomeScreen() {
 
     return () => clearTimeout(timeout);
   }, []);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
-      // No user is logged in
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data() as { email: string; points: number });
-        } else {
-          console.log("No user data found.");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  if (loading) {
-    return (
-      <ActivityIndicator size="large" color="#0066CC" style={styles.loading} />
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -113,45 +60,21 @@ export default function HomeScreen() {
         }}
         lottieRef={snowRef}
       />
-
-      <>
-        <ThemedView style={styles.titleContainer}>
-          {/* <Lottie
-              animationData={flagData}
-              style={{
-                width: 100,
-                height: 50,
-                position: "absolute",
-                left: 228,
-                top: 35,
-                transform: "rotate(16deg)", // Wrap in quotes
-              }}
-            /> */}
-          <Image
-            style={{ width: 320, height: 250 }}
-            source={require("../../assets/fonts/shovltitle.png")}
-            resizeMode="cover"
-          />
-        </ThemedView>
-        <Text style={styles.infoText}>gamifying canada's</Text>
-        <Text style={styles.infoText}>least-favorite chore</Text>
-
-        {/* <Text style={styles.infoText}>Sign up to start earning rewards.</Text> */}
-        <TouchableWithoutFeedback
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          onPress={() => router.push("/login")}
-        >
-          <Animated.View
-            style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
-          >
-            <Image
-              source={require("../../assets/fonts/login.png")}
-              style={{ width: 120, height: 50 }}
-            />
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title" style={styles.title}>
+          welcome back {"[user]"}
+        </ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.coinsContainer}>
+        <ThemedText type="title" style={styles.coins}>
+          snocoins:
+        </ThemedText>
+        &nbsp;
+        <ThemedText type="title" style={styles.coinsYellow}>
+          {"coins₵"}
+        </ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.mainContainer}></ThemedView>
     </View>
   );
 }
@@ -161,21 +84,52 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#0F2141",
+    // justifyContent: "center",
+    backgroundColor: "#08142C",
     paddingHorizontal: 16,
   },
   titleContainer: {
     backgroundColor: "transparent",
-    marginBottom: 20,
-    top: 100,
+    marginBottom: 0,
+    top: 20,
+    left: -35,
   },
   title: {
-    fontSize: 32,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#FFFFFF",
     textAlign: "center",
     fontFamily: "norwester",
+  },
+  coinsContainer: {
+    flexDirection: "row",
+    backgroundColor: "transparent",
+    textAlign: "left",
+    marginBottom: 20,
+    top: 20,
+    left: 3,
+  },
+  coins: {
+    fontSize: 35,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontFamily: "norwester",
+  },
+  coinsYellow: {
+    fontSize: 35,
+    fontWeight: "bold",
+    color: "#ffdc5c",
+    textAlign: "left",
+    fontFamily: "norwester",
+  },
+  mainContainer: {
+    marginTop: 30,
+    backgroundColor: "#0F2141",
+    width: "130%",
+    height: "100%",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
   userData: {
     position: "absolute",

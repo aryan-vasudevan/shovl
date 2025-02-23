@@ -67,37 +67,38 @@ export default function RegisterScreen() {
           position: "absolute",
           top: 0,
           opacity: 0.5,
+          zIndex: -1,
         }}
         source={require("../../assets/fonts/fog.png")}
       />
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title" style={styles.title}>
-          Register
+          register
         </ThemedText>
       </ThemedView>
 
       <TextInput
-        placeholder="Email"
+        placeholder="email"
         value={email}
         onChangeText={setEmail}
         style={styles.input}
       />
 
       <TextInput
-        placeholder="Username"
+        placeholder="username"
         value={userName}
         onChangeText={setUserName}
         style={styles.input}
       />
       <TextInput
-        placeholder="Password (6 or more characters)"
+        placeholder="password (6 or more characters)"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
       />
       <TextInput
-        placeholder="Confirm Password"
+        placeholder="confirm password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
@@ -115,6 +116,17 @@ export default function RegisterScreen() {
       <TouchableOpacity onPress={() => router.push("/login")}>
         <Text style={styles.linkText}>have an account: login</Text>
       </TouchableOpacity>
+      <Image
+        source={require("../../assets/fonts/snowbank.png")}
+        style={{
+          width: "100%",
+          height: 140,
+          position: "absolute",
+          left: 0,
+          top: 480,
+          zIndex: -1,
+        }}
+      />
     </View>
   );
 }
