@@ -18,23 +18,31 @@ export default function HomeScreen() {
     const [userData, setUserData] = useState<{
         email: string;
         points: number;
+        username: string;
     } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true); // Ensure the component is mounted before taking action
+
         const fetchUserData = async () => {
-            const user = auth.currentUser;
-            // No user is logged in
-            if (!user) {
+            if (!auth.currentUser) {
                 setLoading(false);
                 return;
             }
 
             try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const userDoc = await getDoc(
+                    doc(db, "users", auth.currentUser.uid)
+                );
                 if (userDoc.exists()) {
                     setUserData(
-                        userDoc.data() as { email: string; points: number }
+                        userDoc.data() as {
+                            email: string;
+                            points: number;
+                            username: string;
+                        }
                     );
                 } else {
                     console.log("No user data found.");
@@ -49,6 +57,13 @@ export default function HomeScreen() {
         fetchUserData();
     }, []);
 
+    // Redirect only after data is fetched and component is mounted
+    useEffect(() => {
+        if (mounted && !userData) {
+            router.replace("/login"); // Ensure redirection happens after the component is mounted
+        }
+    }, [mounted, userData, router]); // Trigger when `mounted` or `userData` changes
+
     if (loading) {
         return (
             <ActivityIndicator
@@ -61,25 +76,39 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.userData}>{userData?.email || ""}</Text>
+            {/* <Text style={styles.userData}>{userData?.email || ""}</Text> */}
             {userData ? (
                 <>
                     <ThemedView style={styles.titleContainer}>
                         <ThemedText type="title" style={styles.title}>
-                            Welcome Back!
+                            Welcome Back, {userData.username}!
                         </ThemedText>
                     </ThemedView>
                     <Text style={styles.infoText}>
                         Points: {userData.points}
                     </Text>
 
-                    {/* Add Task Button */}
-                    <TouchableOpacity
-                        onPress={() => router.push("/add-task")}
-                        style={styles.button}
-                    >
-                        <Text style={styles.buttonText}>Add Task</Text>
-                    </TouchableOpacity>
+                    {/* Buttons */}
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            onPress={() => router.push("/add-task")}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>Add Task</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/view-tasks",
+                                    params: { userId: userData.username },
+                                })
+                            }
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>View Tasks</Text>
+                        </TouchableOpacity>
+                    </View>
                 </>
             ) : (
                 <>
@@ -117,9 +146,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#102141",
         paddingHorizontal: 16,
     },
-    titleContainer: { 
+    titleContainer: {
         backgroundColor: "#F9F9F9",
-        marginBottom: 20 
+        marginBottom: 20,
     },
     title: {
         fontSize: 32,
@@ -127,18 +156,17 @@ const styles = StyleSheet.create({
         color: "#0066CC",
         textAlign: "center",
     },
-    userData: {
-        position: "absolute",
-        right: 0,
-        top: 0,
-    },
     infoText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
-    button: {
+    buttonContainer: {
         width: "80%",
+        flexDirection: "column",
+        gap: 10,
+    },
+    button: {
+        width: "100%",
         padding: 16,
         backgroundColor: "#0066CC",
         borderRadius: 8,
-        marginTop: 20,
         alignItems: "center",
     },
     buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
