@@ -75,11 +75,64 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.mainContainer}></ThemedView>
+
+
+                  {/* Buttons
+                  <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            onPress={() => router.push("/add-task")}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>Add Task</Text>
+                        </TouchableOpacity>
+
+
+                        <TouchableOpacity
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/view-tasks",
+                                    params: { userId: userData.userName },
+                                })
+                            }
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>View Tasks</Text>
+                        </TouchableOpacity>
+                    </View>
+                </>
+            ) : (
+                <>
+                    <ThemedView style={styles.titleContainer}>
+                        <ThemedText type="title" style={styles.title}>
+                            Welcome to shovl!
+                        </ThemedText>
+                    </ThemedView>
+                    <Text style={styles.infoText}>
+                        Earn points by helping your community with snow
+                        shoveling!
+                    </Text>
+                    <Text style={styles.infoText}>
+                        Sign up to start earning rewards.
+                    </Text>
+
+
+                    <TouchableOpacity
+                        onPress={() => router.push("/login")}
+                        style={styles.button}
+                    >
+                        <Text style={styles.buttonText}>Login</Text>
+                    </TouchableOpacity>
+                </>
+            )}
+            <BottomBar /> */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  buttonContainer:{
+
+  },
   container: {
     overflow: "hidden",
     flex: 1,
