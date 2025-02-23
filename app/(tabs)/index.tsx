@@ -58,11 +58,6 @@ export default function HomeScreen() {
     }, []);
 
     // Redirect only after data is fetched and component is mounted
-    useEffect(() => {
-        if (mounted && !userData) {
-            router.replace("/login"); // Ensure redirection happens after the component is mounted
-        }
-    }, [mounted, userData, router]); // Trigger when `mounted` or `userData` changes
 
     if (loading) {
         return (
