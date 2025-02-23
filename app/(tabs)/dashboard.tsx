@@ -96,7 +96,7 @@ export default function HomeScreen() {
                 <ThemedText style={styles.coins2}>your rank:</ThemedText>
                 <Image
                     source={require("../../assets/fonts/bronze.png")}
-                    style={{ width: 230, height: 350 }}
+                    style={{ width: 180, height: 280,  top: -20 }}
                 />
             </ThemedView>
 
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         textAlign: "center",
         fontFamily: "norwester",
-        top: 20,
+        top: -20,
     },
     coinsYellow: {
         fontSize: 35,
