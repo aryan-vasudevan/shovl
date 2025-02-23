@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     FlatList,
+    Image
 } from "react-native";
 import { auth, db } from "../../firebase.config";
 import { collection, query, where, getDocs, getDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
@@ -114,18 +115,23 @@ export default function Friends() {
         fetchFriends();
     }, []);
 
+    const dimensions = 30;
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>FRIENDS LIST</Text>
-            <TextInput
-                placeholder="Username"
-                value={targetUserName}
-                onChangeText={setTargetUserName}
-                style={styles.input}
-            />
-            <TouchableOpacity style={styles.button} onPress={() => handleSubmit(targetUserName)} disabled={loading}>
-                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>--&gt;</Text>}
-            </TouchableOpacity>
+            <div style={styles.inline}>
+                <TextInput
+                    placeholder="Username"
+                    value={targetUserName}
+                    onChangeText={setTargetUserName}
+                    style={styles.input}
+                />
+                <button style={styles.button} onClick={() => handleSubmit(targetUserName)} disabled={loading}>
+                    <Image source={require('../../assets/images/arrow.png')} style={{ width: dimensions, height: dimensions }} />
+                </button>
+            </div>
+            {loading ? <ActivityIndicator color="white" /> : ""}
             {message ? <Text style={styles.message}>{message}</Text> : null}
             <FlatList
                 style={styles.listContainer}
@@ -159,6 +165,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         flex: 1,
     },
+    inline: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "4px",
+        alignItems: "center",
+    },
     title: {
         color: "white",
         fontSize: 30,
@@ -170,14 +182,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 10,
         width: "80%",
-        marginBottom: 10,
     },
     button: {
-        backgroundColor: "#1E90FF",
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        backgroundColor: "transparent",
+        borderColor: "transparent",
         borderRadius: 8,
-        marginTop: 10,
     },
     buttonText: {
         color: "white",
