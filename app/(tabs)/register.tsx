@@ -102,7 +102,7 @@ export default function RegisterScreen() {
                 style={styles.loginLink}
             >
                 <Text style={styles.linkText}>
-                    Already have an account? Login
+                    have an account: login
                 </Text>
             </TouchableOpacity>
         </View>
@@ -110,53 +110,58 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#F9F9F9",
-        paddingHorizontal: 16,
-    },
-    titleContainer: {
-        backgroundColor: "#F9F9F9",
-        marginBottom: 20,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: "bold",
-        color: "#0066CC",
-    },
-    input: {
-        width: "100%",
-        padding: 16,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 8,
-        marginBottom: 12,
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.5,
-        elevation: 5,
-    },
-    button: {
-        width: "100%",
-        padding: 16,
-        backgroundColor: "#0066CC",
-        borderRadius: 8,
-        marginBottom: 12,
-        alignItems: "center",
-    },
-    buttonText: {
-        color: "#FFFFFF",
-        fontWeight: "bold",
-        fontSize: 16,
-    },
-    loginLink: {
-        marginTop: 16,
-    },
-    linkText: {
-        color: "#0066CC",
-        fontSize: 16,
-        textDecorationLine: "underline",
-    },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0F2141",
+    overflow: "hidden",
+  },
+  titleContainer: {
+    backgroundColor: "#transparent",
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: "normal",
+    color: "#FFFFFF",
+    fontFamily: "norwester",
+  },
+  input: {
+    width: "70%",
+    height: "7%",
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 5,
+    fontFamily: "norwester",
+  },
+  button: {
+    width: "33%",
+    height: "7%",
+    padding: 0,
+    backgroundColor: "transparent",
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 5,
+  },
+  buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
+  registerLink: {
+    marginTop: 11,
+  },
+  linkText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    textDecorationLine: "underline",
+    fontFamily: "norwester",
+  },
+  body: {
+    overflow: "hidden",
+    height: "100%",
+  },
 });

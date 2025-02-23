@@ -93,6 +93,7 @@ function HomeScreen() {
           width: 1000,
           height: 1000,
         }}
+        speed = 0.5
       />
 
       {/* <Text style={styles.userData}>{userData?.email || "fjdlksfjlds"}</Text> */}
@@ -145,7 +146,7 @@ function HomeScreen() {
             <Animated.View
               style={[styles.button2, { transform: [{ scale: scaleValue }] }]}
             >
-              <Image source={require("../../assets/fonts/login.png")} style= {{width: 120, height: 80}} />
+              <Image source={require("../../assets/fonts/login.png")} style= {{width: 120, height: 50}} />
             </Animated.View>
           </TouchableWithoutFeedback>
         </>
@@ -207,6 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     marginTop: 20,
     alignItems: "center",
+    top: 40,
   },
   buttonText: {
     color: "#FFFFFF",

@@ -15,6 +15,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import flagData from "../../assets/fonts/flag.json";
 import { useFonts } from "expo-font";
+import { Image } from "react-native";
+import Lottie from "lottie-react";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title" style={styles.title}>
-          Login
+          login
         </ThemedText>
       </ThemedView>
 
@@ -75,15 +77,50 @@ export default function LoginScreen() {
       />
 
       <TouchableOpacity onPress={handleLogin} style={styles.button}>
-        <Text style={styles.buttonText}>login</Text>
+        <Image
+          source={require("../../assets/fonts/login.png")}
+          style={{ width: 90, height: 40 }}
+          resizeMode="contain"
+        />
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => router.push("/register")}
         style={styles.registerLink}
       >
-        <Text style={styles.linkText}>Don't have an account? Register</Text>
+        <Text style={styles.linkText}>create account</Text>
       </TouchableOpacity>
+      <Image
+        source={require("../../assets/fonts/snowman.png")}
+        style={{
+          width: 100,
+          height: 120,
+          position: "absolute",
+          left: 5,
+          top: 460,
+        }}
+      />
+      <Image
+        source={require("../../assets/fonts/snowbank.png")}
+        style={{
+          width: "100%",
+          height: 140,
+          position: "absolute",
+          left: 0,
+          top: 480,
+          zIndex: -1,
+        }}
+      />
+      <Lottie
+        animationData={flagData}
+        style={{
+          width: 66,
+          height: 80,
+          position: "absolute",
+          top: 448,
+          left: 80,
+        }}
+      />
     </View>
   );
 }
@@ -93,21 +130,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F9F9F9",
-    paddingHorizontal: 16,
+    backgroundColor: "#0F2141",
+    overflow: "hidden",
   },
   titleContainer: {
-    backgroundColor: "#F9F9F9",
-    marginBottom: 20,
+    backgroundColor: "#transparent",
+    marginBottom: 30,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#0066CC",
+    fontSize: 48,
+    fontWeight: "normal",
+    color: "#FFFFFF",
     fontFamily: "norwester",
   },
   input: {
-    width: "100%",
+    width: "70%",
+    height: "7%",
     padding: 16,
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
@@ -118,22 +156,29 @@ const styles = StyleSheet.create({
     shadowRadius: 3.5,
     elevation: 5,
     fontFamily: "norwester",
+    fontSize: 18,
   },
   button: {
-    width: "100%",
-    padding: 16,
-    backgroundColor: "#0066CC",
+    width: "33%",
+    height: "7%",
+    padding: 0,
+    backgroundColor: "transparent",
     borderRadius: 8,
-    marginBottom: 12,
     alignItems: "center",
+    marginTop: 5,
   },
   buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
   registerLink: {
-    marginTop: 16,
+    marginTop: 11,
   },
   linkText: {
-    color: "#0066CC",
+    color: "#FFFFFF",
     fontSize: 16,
     textDecorationLine: "underline",
+    fontFamily: "norwester",
+  },
+  body: {
+    overflow: "hidden",
+    height: "100%",
   },
 });
