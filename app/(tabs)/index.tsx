@@ -6,42 +6,39 @@ import {
     StyleSheet,
     ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { auth, db } from "../../firebase.config";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { db } from "../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import BottomBar from "@/components/BottomBar";
 
 export default function HomeScreen() {
+    const { userUid } = useLocalSearchParams();
     const router = useRouter();
     const [userData, setUserData] = useState<{
         email: string;
         points: number;
-        username: string;
+        userName: string;
     } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true); // Ensure the component is mounted before taking action
-
         const fetchUserData = async () => {
-            if (!auth.currentUser) {
+            if (!userUid) {
                 setLoading(false);
                 return;
             }
 
             try {
-                const userDoc = await getDoc(
-                    doc(db, "users", auth.currentUser.uid)
-                );
+                const userRef = doc(db, "users", userUid as string);
+                const userDoc = await getDoc(userRef);
                 if (userDoc.exists()) {
                     setUserData(
                         userDoc.data() as {
                             email: string;
                             points: number;
-                            username: string;
+                            userName: string;
                         }
                     );
                 } else {
@@ -55,7 +52,7 @@ export default function HomeScreen() {
         };
 
         fetchUserData();
-    }, []);
+    }, [userUid]);
 
     if (loading) {
         return (
@@ -69,19 +66,17 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            {/* <Text style={styles.userData}>{userData?.email || ""}</Text> */}
             {userData ? (
                 <>
                     <ThemedView style={styles.titleContainer}>
                         <ThemedText type="title" style={styles.title}>
-                            Welcome Back, {userData.username}!
+                            Welcome Back, {userData.userName}!
                         </ThemedText>
                     </ThemedView>
                     <Text style={styles.infoText}>
                         Points: {userData.points}
                     </Text>
 
-                    {/* Buttons */}
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             onPress={() => router.push("/add-task")}
@@ -94,7 +89,7 @@ export default function HomeScreen() {
                             onPress={() =>
                                 router.push({
                                     pathname: "/view-tasks",
-                                    params: { userId: userData.username },
+                                    params: { userUid },
                                 })
                             }
                             style={styles.button}
@@ -139,7 +134,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#102141",
         paddingHorizontal: 16,
     },
-    titleContainer: { 
+    titleContainer: {
         backgroundColor: "#F9F9F9",
         marginBottom: 20,
     },
@@ -149,7 +144,11 @@ const styles = StyleSheet.create({
         color: "#0066CC",
         textAlign: "center",
     },
-    infoText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
+    infoText: {
+        fontSize: 18,
+        marginBottom: 10,
+        textAlign: "center",
+    },
     buttonContainer: {
         width: "80%",
         flexDirection: "column",
@@ -162,6 +161,14 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: "center",
     },
-    buttonText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 16 },
-    loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+    buttonText: {
+        color: "#FFFFFF",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    loading: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

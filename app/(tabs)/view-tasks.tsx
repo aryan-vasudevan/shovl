@@ -10,9 +10,11 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as Location from "expo-location";
 import { db } from "../../firebase.config";
 import { collection, getDocs } from "firebase/firestore";
 import BottomBar from "@/components/BottomBar";
+import { useLocalSearchParams } from "expo-router";
 
 // Haversine formula to calculate distance in km
 const distance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -53,8 +55,8 @@ const formatDate = (timestamp: string) => {
     return `${monthsDiff} month${monthsDiff !== 1 ? "s" : ""} ago`;
 };
 
-export default function ViewTasksScreen({ route }: { route: any }) {
-    const { userId } = route.params; 
+export default function ViewTasksScreen() {
+    const { userUid } = useLocalSearchParams();
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<{
@@ -138,7 +140,7 @@ export default function ViewTasksScreen({ route }: { route: any }) {
         });
     };
 
-    // Render each task with formatted date and distance
+    // Render each task with formatted date, distance, and points
     const renderItem = ({ item }: { item: any }) => {
         if (!userLocation) return null; // Don't render until user location is available
 
@@ -154,7 +156,7 @@ export default function ViewTasksScreen({ route }: { route: any }) {
                 onPress={() =>
                     router.push({
                         pathname: "/complete-task",
-                        params: { taskId: item.id, userId: userId }, // ✅ Fix: Replace with actual userId
+                        params: { taskId: item.id, userUid: userUid },
                     })
                 }
             >
@@ -167,7 +169,10 @@ export default function ViewTasksScreen({ route }: { route: any }) {
                         Posted {formatDate(item.timestamp)}
                     </Text>
                     <Text style={styles.taskText}>
-                        Distance: {taskDistance} km
+                        Distance: {taskDistance} km |{" "}
+                        <Text style={styles.pointsText}>
+                            Points: {item.points}
+                        </Text>
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -211,7 +216,6 @@ export default function ViewTasksScreen({ route }: { route: any }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // padding: 20,
         backgroundColor: "#F9F9F9",
         paddingBottom: 60,
     },
@@ -239,5 +243,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#333",
         marginTop: 5,
+    },
+    pointsText: {
+        fontWeight: "bold",
+        color: "#0066CC",
     },
 });

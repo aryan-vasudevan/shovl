@@ -37,8 +37,10 @@ export default function LoginScreen() {
             const userDoc = await getDoc(doc(db, "users", user.uid));
 
             if (userDoc.exists()) {
-                console.log("User data:", userDoc.data());
-                router.push("/"); 
+                router.push({
+                    pathname: "/",
+                    params: { userUid: user.uid },
+                }); 
             } else {
                 Alert.alert("Error", "User data not found.");
             }

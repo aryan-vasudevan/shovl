@@ -108,11 +108,26 @@ export default function AddTaskScreen() {
                 JSON.stringify(response.data, null, 2)
             );
 
-            const predictions = response.data.predictions || [];
+            const { width, height } = response.data.image; // Access width and height from the response
+            let predictions = response.data.predictions || [];
+
+            // If no predictions are made, fallback to using image width and height
+            if (predictions.length === 0) {
+                console.warn(
+                    "No predictions detected. Using image dimensions for points calculation."
+                );
+                const imageArea = width * height;
+                return calculatePointsFromImageDimensions(imageArea);
+            }
+
+            // Filter out predictions with confidence less than 1%
+            predictions = predictions.filter(
+                (prediction: any) => prediction.confidence >= 0.01
+            );
 
             if (predictions.length === 0) {
-                console.warn("No objects detected.");
-                return 1; // If no snow detected, return the minimum points
+                console.warn("No snow detected with sufficient confidence.");
+                return 5; // Return the minimum points when no snow is detected with enough confidence
             }
 
             // Calculate the total area of all snow piles (width * height for each prediction)
@@ -123,22 +138,60 @@ export default function AddTaskScreen() {
 
             console.log("Total Area (width * height):", totalArea);
 
-            // Adjust the scaling factor based on the average photo's total area of 600,000
-            const scalingFactor = 5 / 600000; 
-            let scaledPoints = totalArea * scalingFactor;
+            // Optional: Overlay confidence values for each prediction
+            predictions.forEach((prediction: any) => {
+                console.log(
+                    `Prediction Confidence: ${prediction.confidence * 100}%`
+                );
+            });
 
-            // Cap the points at 10 (maximum)
-            scaledPoints = Math.min(scaledPoints, 10);
+            // Adjust the scaling factor based on a target area
+            const scalingFactor = 10 / 600000; // You may fine-tune this based on expected area range
+            let rawPoints = totalArea * scalingFactor;
 
-            // Ensure points are at least 1 (minimum)
-            scaledPoints = Math.max(scaledPoints, 2);
+            // Normalizing points into a Gaussian-like distribution between 5 and 15
+            const mean = 10;
+            const stdDev = 2; // Control how spread out the points are
 
-            console.log("Calculated Points (scaled):", scaledPoints);
-            return Math.round(scaledPoints);
+            // Calculate the point using a Gaussian distribution
+            const gaussianPoints = Math.round(
+                mean + stdDev * (Math.random() * 2 - 1) * rawPoints
+            );
+
+            // Ensure the points are within the range of 5 to 15
+            let finalPoints = Math.max(5, Math.min(15, gaussianPoints));
+
+            console.log(
+                "Calculated Points (Gaussian-like distribution):",
+                finalPoints
+            );
+            return finalPoints;
         } catch (error) {
             console.error("Error calculating snow coverage:", error);
-            return 1; // Return minimum points in case of error
+            return 5; // Return minimum points in case of error
         }
+    };
+
+    // Fallback function to calculate points from image dimensions
+    const calculatePointsFromImageDimensions = (imageArea: number) => {
+        // For simplicity, you can use a similar scaling approach for the image area
+        const scalingFactor = 10 / 600000; // You can adjust this based on the image size
+        let rawPoints = imageArea * scalingFactor;
+
+        // Normalizing points into a Gaussian-like distribution between 5 and 15
+        const mean = 10;
+        const stdDev = 2; // Control how spread out the points are
+
+        // Calculate the point using a Gaussian distribution
+        const gaussianPoints = Math.round(
+            mean + stdDev * (Math.random() * 2 - 1) * rawPoints
+        );
+
+        // Ensure the points are within the range of 5 to 15
+        let finalPoints = Math.max(5, Math.min(15, gaussianPoints));
+
+        console.log("Fallback Points (Image Dimensions):", finalPoints);
+        return finalPoints;
     };
 
     const handleSubmit = async () => {
@@ -161,7 +214,7 @@ export default function AddTaskScreen() {
                 latitude: location.latitude,
                 longitude: location.longitude,
                 timestamp: new Date().toISOString(),
-                points, // Store calculated points
+                points: points,
             };
 
             await addDoc(collection(db, "tasks"), taskData);
